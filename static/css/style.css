@@ -1,0 +1,44 @@
+body {
+    font-family: Arial, sans-serif;
+    background-image: url('../imgs/tcup.jpg'); /* Substitua com a URL da sua imagem */
+    background-size: contain;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    opacity: 0.8;
+    color: white;
+
+}
+
+/* Sobreposição escura para melhorar a legibilidade */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1;
+}
+
+
+.container {
+    position: relative;
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.95); /* Fundo branco com leve transparência */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: black;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #a72839; /* Verde relacionado ao futebol */
+}
+
+.btn-primary {
+    background-color: #3f28a7;
+    border-color: #3f28a7;
+}

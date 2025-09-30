@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head>
+    <title>Editar Partida</title>
+</head>
+<body>
+    <h1>Editar Partida</h1>
+    <form method="POST">
+        <label>Time A: {{ match.team_a.name }}</label><br>
+        <label>Placar Time A: <input type="number" name="score_a" value="{{ match.score_a }}" required></label><br>
+        
+        <label>Time B: {{ match.team_b.name }}</label><br>
+        <label>Placar Time B: <input type="number" name="score_b" value="{{ match.score_b }}" required></label><br>
+        
+        <input type="submit" value="Salvar">
+    </form>
+    <a href="{{ url_for('matches') }}">Voltar</a>
+</body>
+</html>
+

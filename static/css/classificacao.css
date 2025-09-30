@@ -1,0 +1,120 @@
+/* Estilo do título principal */
+.titulo {
+    text-align: center;
+    color: #002743;
+    font-family: 'Arial', sans-serif;
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Estilo da tabela */
+.tabelaClassificacao {
+    width: 60%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff;
+    color: #002743;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+}
+/* Estilo do logo dos times */
+.logo-time {
+    width: 100%;      /* Tamanho automático para manter a proporção */
+    height: 40px;     /* Altura fixa adequada para o layout */
+    object-fit: contain;  /* Mantém a proporção e ajusta ao contêiner */
+    vertical-align: middle;
+    margin-right: 10px;  /* Espaço entre o logo e o nome do time */
+    image-rendering: -webkit-optimize-contrast; /* Melhora a renderização para imagens raster */
+    image-rendering: crisp-edges; /* Para imagens PNG de baixa resolução */
+    border-radius: 50%;  /* Deixa o logo em formato circular (opcional) */
+}
+
+/* Cabeçalho da tabela */
+.tabelaClassificacao th {
+    background-color: #123b67;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+
+/* Corpo da tabela */
+.tabelaClassificacao td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+}
+
+/* Coluna de classificação (#) */
+.tabelaClassificacao td:first-child {
+    font-size: 24px;
+    font-weight: bold;
+    background-color: #002743;
+    color: #ffffff;
+    width: 50px;
+}
+
+/* Cores para as posições com base em sua classificação */
+.tabelaClassificacao tr:nth-child(-n+4) td:first-child {
+    background-color: #228822; /* Verde para os primeiros 4 colocados */
+}
+
+.tabelaClassificacao tr:nth-child(n+5):nth-child(-n+6) td:first-child {
+    background-color: #ff5733; /* Amarelo para 5º e 6º colocados */
+}
+
+
+/* Estilo da coluna dos times */
+.tabelaClassificacao td:nth-child(2) {
+    text-align: left;
+    padding-left: 10px;
+}
+
+/* Diferenciação das linhas */
+.tabelaClassificacao tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.tabelaClassificacao tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Remover a borda da última linha */
+.tabelaClassificacao tr:last-child td {
+    border-bottom: none;
+}
+
+/* Estilo das siglas abaixo da tabela */
+.siglas {
+    text-align: center;
+    font-size: 14px;
+    color: #555555;
+    margin-top: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Link para voltar */
+a {
+    display: block;
+    text-align: center;
+    font-size: 16px;
+    color: #002743;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+a:hover {
+    color: #1cdd9b;
+}
+
+/* Borda arredondada para a tabela */
+.tabelaClassificacao {
+    border-radius: 10px;
+    overflow: hidden;
+}

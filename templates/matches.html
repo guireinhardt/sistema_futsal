@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+    <title>Tabela da Copa Terça Féra 2024 </title>
+    <link rel="stylesheet" href="../static/css/matches.css"> 
+</head>
+<body>
+    <h1>Tabela de jogos da Copa Terça Féra 2024</h1>
+    <table>
+        <tr>
+            <th>Mandante</th>
+            <th>Gols</th>
+            <th>Visitante</th>
+            <th>Gols</th>
+        </tr>
+        {% for match in matches %}
+        <tr>
+            <td class="centralizar">
+                <img class='logo-time' src="{{ url_for('static', filename='logos/' + match.team_a.name|lower|replace(' ', '_') + '.jpeg') }}" 
+                 alt="{{ match.team_a.name }} logo">
+
+
+                {{ match.team_a.name }}
+            </td>
+            <td class="score">
+                <span class="gols">{{ match.score_a }}</td></span>
+            <td class="centralizar"> 
+                <img class='logo-time' src="{{ url_for('static', filename='logos/' + match.team_b.name|lower|replace(' ', '_') + '.jpeg') }}" 
+                alt="{{ match.team_b.name }} logo">
+
+
+                {{ match.team_b.name }}
+            </td>
+            <td class="score">
+                <span class="gols">{{ match.score_b }}</span>
+            </td>
+            <td><a href="{{ url_for('edit_match', match_id=match.id) }}">Editar</a></td>  <!-- Link para editar -->
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<head>
+    <title>Adicionar Time</title>
+</head>
+<body>
+    <h1>Adicionar Time</h1>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <label>{{ form.name.label }}</label>
+        {{ form.name(size=32) }}<br>
+        {{ form.submit() }}
+    </form>
+    <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>
+

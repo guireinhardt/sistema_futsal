@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Futsal</title>
+    <link rel="stylesheet" href="../static/css/index.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../static/logos/logo-tf.jpg" alt="Logo Futsal">
+        </div>
+        <h1>Sistema de Gerenciamento de Futsal</h1>
+    </header>
+
+    <section class="content">
+        <div class="menu">
+            <a href="{{ url_for('add_team') }}" class="menu-item">Adicionar Time</a>
+            <a href="{{ url_for('add_player') }}" class="menu-item">Adicionar Jogador</a>
+            <a href="{{ url_for('add_match') }}" class="menu-item">Adicionar Resultado</a>
+            <a href="{{ url_for('standings') }}" class="menu-item">Tabela de Classificação</a>
+            <a href="{{ url_for('players') }}" class="menu-item">Jogadores</a>
+            <a href="{{ url_for('top_scorers') }}" class="menu-item">Artilheiros</a>
+            <a href="{{ url_for('matches') }}" class="menu-item">Lista de Jogos</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sistema de Futsal. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

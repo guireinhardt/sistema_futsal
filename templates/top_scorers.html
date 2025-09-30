@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+    <title>Artilheiros</title>
+</head>
+<body>
+    <h1>Artilheiros</h1>
+    <table>
+        <tr>
+            <th>Jogador</th>
+            <th>Time</th>
+            <th>Gols</th>
+        </tr>
+        {% for player in players %}
+        <tr>
+            <td>{{ player.name }}</td>
+            <td>{{ player.team.name }}</td>
+            <td>{{ player.goals }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>

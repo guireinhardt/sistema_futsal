@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.css"> 
+    <title>Adicionar Jogador</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Adicionar Jogador</h2>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="name">{{ form.name.label }}</label>
+                {{ form.name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="team_id">{{ form.team_id.label }}</label>
+                {{ form.team_id(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="position">{{ form.position.label }}</label>
+                {{ form.position(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="goals">{{ form.goals.label }}</label>
+                {{ form.goals(class="form-control") }}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</body>
+</html>

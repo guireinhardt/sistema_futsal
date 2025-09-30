@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+    <title>Editar Jogador</title>
+</head>
+<body>
+    <h1>Editar Jogador: {{ player.name }}</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.name.label }} {{ form.name(size=32) }}<br>
+        {{ form.team_id.label }} {{ form.team_id() }}<br>
+        {{ form.position.label }} {{ form.position(size=32) }}<br>
+        {{ form.goals.label }} {{ form.goals(size=10) }}<br>
+        {{ form.submit() }}
+    </form>
+    <a href="{{ url_for('players') }}">Voltar</a>
+</body>
+</html>
+

@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+    <title>Tabela de Classificação</title>
+    <link rel="stylesheet" href="../static/css/classificacao.css"> 
+</head>
+<body>
+    <h1 class="titulo">Tabela de Classificação</h1>
+    <table class="tabelaClassificacao">
+        <tr>
+            <th>#</th>
+            <th></th>
+            <th>Time</th>
+            <th>PG</th>
+            <th>J</th>
+            <th>V</th>
+            <th>E</th>
+            <th>D</th>
+            <th>GP</th>
+            <th>GC</th>
+            <th>SG</th>
+            
+        </tr>
+        {% for data in standings %}
+        <tr>
+            <td>{{ data.position}}</td>
+            <td>
+                <img class='logo-time' src="{{ url_for('static', filename='logos/' + data.team|replace(' ', '_') + '.png') }}" 
+                 alt="{{ data.team }}">
+            </td>
+            <td>{{ data.team }}</td>
+            <td>{{ data.points }}</td>
+            <td>{{ data.matches }}</td>
+            <td>{{ data.wins }}</td>
+            <td>{{ data.draws }}</td>
+            <td>{{ data.losses }}</td>
+            <td>{{ data.goals_scored }}</td>
+            <td>{{ data.goals_against }}</td>
+            <td>{{ data.goal_difference }}</td>
+            
+        </tr>
+        {% endfor %}
+    </table>
+    <p class="siglas"> SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols </p>
+    <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>

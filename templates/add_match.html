@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+    <title>Adicionar Resultado da Partida</title>
+</head>
+<body>
+    <h1>Adicionar Resultado da Partida</h1>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <label>{{ form.team_a_id.label }}</label>
+        {{ form.team_a_id() }}<br>
+        <label>{{ form.score_a.label }}</label>
+        {{ form.score_a(size=5) }}<br>
+        <label>{{ form.team_b_id.label }}</label>
+        {{ form.team_b_id() }}<br>
+        <label>{{ form.score_b.label }}</label>
+        {{ form.score_b(size=5) }}<br>
+        {{ form.submit() }}
+    </form>
+    <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>
