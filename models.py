@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func, UniqueConstraint
 
 db = SQLAlchemy()
 
@@ -33,3 +34,32 @@ class Player(db.Model):
     goals = db.Column(db.Integer, default=0)
 
     team = db.relationship('Team', backref='players_list')  # Renomeado para evitar conflito
+
+class Goal(db.Model):
+    __tablename__ = 'goal'
+    id = db.Column(db.Integer, primary_key=True)
+    match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    # Se quiser, acrescente:
+    # minute = db.Column(db.Integer)
+    # own_goal = db.Column(db.Boolean, default=False)
+
+class PlayerMatchStat(db.Model):
+    __tablename__ = 'player_match_stat'
+    id = db.Column(db.Integer, primary_key=True)
+    match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    goals = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint('match_id', 'player_id', name='uq_stat_match_player'),
+    )
+
+    # relacionamentos úteis (opcionais)
+    match_ref = db.relationship('Match', backref=db.backref('player_stats', cascade='all, delete-orphan', lazy=True))
+    player_ref = db.relationship('Player', backref='match_stats')
+    team_ref = db.relationship('Team')
