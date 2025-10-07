@@ -6,6 +6,13 @@
 </head>
 <body>
     <h1 class="titulo">Tabela de Classificação</h1>
+
+    <!-- Mensagem de Aguardando Fase de Grupos -->
+    {% if not all_matches_completed %}
+        <p style="color: orange; text-align: center;">Aguardando todos os jogos da fase de grupos serem finalizados para exibir as semi-finais.</p>
+    {% endif %}
+
+    <!-- Tabela de Classificação -->
     <table class="tabelaClassificacao">
         <tr>
             <th>#</th>
@@ -19,14 +26,13 @@
             <th>GP</th>
             <th>GC</th>
             <th>SG</th>
-            
         </tr>
         {% for data in standings %}
         <tr>
-            <td>{{ data.position}}</td>
+            <td>{{ data.position }}</td>
             <td>
                 <img class='logo-time' src="{{ url_for('static', filename='logos/' + data.team|replace(' ', '_') + '.png') }}" 
-                 alt="{{ data.team }}">
+                     alt="{{ data.team }}">
             </td>
             <td>{{ data.team }}</td>
             <td>{{ data.points }}</td>
@@ -37,11 +43,56 @@
             <td>{{ data.goals_scored }}</td>
             <td>{{ data.goals_against }}</td>
             <td>{{ data.goal_difference }}</td>
-            
         </tr>
         {% endfor %}
     </table>
-    <p class="siglas"> SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols </p>
+
+    <p class="siglas">SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols</p>
+
+    <!-- Tabela de Semi-Finais -->
+    {% if semi_finals %}
+        <h2 class="semi-final-titulo">Semi-Finais</h2>
+        <table class="tabelaClassificacao semi-final">
+            <thead>
+                <tr>
+                    <th>Jogo</th>
+                    <th>Mandante</th>
+                    <th>Visitante</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in semi_finals %}
+                <tr>
+                    <td>Semi-final</td>
+                    <td>{{ match.team_a }}</td>
+                    <td>{{ match.team_b }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <!-- Tabela da Final -->
+    {% if final_teams %}
+        <h2 class="final-titulo">Final</h2>
+        <table class="tabelaClassificacao final">
+            <thead>
+                <tr>
+                    <th>Jogo</th>
+                    <th>Mandante</th>
+                    <th>Visitante</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Final</td>
+                    <td>{{ final_teams[0] }}</td>
+                    <td>{{ final_teams[1] }}</td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+
     <a href="{{ url_for('index') }}">Voltar</a>
 </body>
 </html>

@@ -20,6 +20,7 @@
     overflow: hidden;
     box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
 }
+
 /* Estilo do logo dos times */
 .logo-time {
     width: 100%;      /* Tamanho automático para manter a proporção */
@@ -67,7 +68,6 @@
 .tabelaClassificacao tr:nth-child(n+5):nth-child(-n+6) td:first-child {
     background-color: #ff5733; /* Amarelo para 5º e 6º colocados */
 }
-
 
 /* Estilo da coluna dos times */
 .tabelaClassificacao td:nth-child(2) {
@@ -117,4 +117,70 @@ a:hover {
 .tabelaClassificacao {
     border-radius: 10px;
     overflow: hidden;
+}
+
+/* Estilo para as semi-finais */
+.semi-final-titulo {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff;  /* Cor azul para semi-finais */
+}
+
+.semi-final {
+    width: 60%;
+    margin: 0 auto;
+    background-color: #ffffff;
+    color: #002743;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    margin-top: 20px;
+}
+
+.semi-final th, .semi-final td {
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.semi-final tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.semi-final tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Estilo para a final */
+.final-titulo {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #28a745;  /* Cor verde para a final */
+}
+
+.final {
+    width: 60%;
+    margin: 0 auto;
+    background-color: #ffffff;
+    color: #002743;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    margin-top: 20px;
+}
+
+.final th, .final td {
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.final tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.final tr:nth-child(odd) {
+    background-color: #ffffff;
 }

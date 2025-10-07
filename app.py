@@ -4,7 +4,7 @@ from forms import TeamForm, PlayerForm, MatchForm
 from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-
+from services.standingsService import calculate_standings,check_all_matches_completed,generate_semi_finals,save_semi_finals
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'terca-f&era-cup'
@@ -76,72 +76,24 @@ def add_player():
 
 @app.route('/standings')
 def standings():
-    teams = Team.query.all()
-    standings_data = []
+    # Verifica se todos os jogos foram finalizados
+    if not check_all_matches_completed():
+        flash('Aguardando todos os jogos serem finalizados para exibir as semi-finais.', 'warning')
+        standings_data = calculate_standings()  # Calcula a classificação
+        return render_template('standings.html', standings=standings_data, all_matches_completed=False)  # Passa a flag 'all_matches_completed=False'
 
-    for team in teams:
-        matches_as_team_a = Match.query.filter_by(team_a_id=team.id).all()
-        matches_as_team_b = Match.query.filter_by(team_b_id=team.id).all()
+    standings_data = calculate_standings()  # Chama a função para calcular a classificação
 
-        total_matches = 0
-        total_goals_scored = 0
-        total_goals_against = 0
-        goal_difference = 0
+    # Gerar as semi-finais
+    semi_finals = generate_semi_finals(standings_data)
 
-        wins = 0
-        draws = 0
-        losses = 0
+    # Salvar as semi-finais no banco de dados
+    save_semi_finals(standings_data)
 
-        # Contabiliza apenas os jogos finalizados, ou empate 0x0
-        for match in matches_as_team_a:
-            if match.score_a is not None and match.score_b is not None:  # Jogo finalizado
-                total_matches += 1
-                total_goals_scored += match.score_a
-                total_goals_against += match.score_b
-                goal_difference += match.score_a - match.score_b
+    # Gerar os times para a final (após os jogos de semi-final serem definidos)
+    final_teams = [semi_finals[0]['winner'], semi_finals[1]['winner']]  # Aqui você pode atualizar após os vencedores das semi-finais
 
-                if match.score_a > match.score_b:  # Vitória do Time A
-                    wins += 1
-                elif match.score_a == match.score_b:  # Empate (0x0)
-                    draws += 1
-                else:  # Derrota para o Time A
-                    losses += 1
-
-        for match in matches_as_team_b:
-            if match.score_a is not None and match.score_b is not None:  # Jogo finalizado
-                total_matches += 1
-                total_goals_scored += match.score_b
-                total_goals_against += match.score_a
-                goal_difference += match.score_b - match.score_a
-
-                if match.score_b > match.score_a:  # Vitória do Time B
-                    wins += 1
-                elif match.score_a == match.score_b:  # Empate (0x0)
-                    draws += 1
-                else:  # Derrota para o Time B
-                    losses += 1
-
-        points = (wins * 3) + (draws * 1)  # 3 pontos por vitória, 1 ponto por empate
-
-        standings_data.append({
-            'team': team.name,
-            'matches': total_matches,
-            'wins': wins,
-            'draws': draws,
-            'losses': losses,
-            'goals_scored': total_goals_scored,
-            'goals_against': total_goals_against,
-            'goal_difference': goal_difference,
-            'points': points,
-        })
-
-    standings_data.sort(key=lambda x: (x['points'], x['goal_difference'], x['goals_scored']), reverse=True)
-
-    # Atribui a posição ao time
-    for index, team_data in enumerate(standings_data, start=1):
-        team_data['position'] = index
-
-    return render_template('standings.html', standings=standings_data)
+    return render_template('standings.html', standings=standings_data, semi_finals=semi_finals, final_teams=final_teams, all_matches_completed=True)
 
 @app.route('/top_scorers')
 def top_scorers():
