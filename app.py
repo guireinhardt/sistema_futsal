@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
 app = Flask(__name__)
+app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'terca-f&era-cup'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///football.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -21,38 +22,25 @@ def index():
 
 @app.route('/add_match', methods=['GET', 'POST'])
 def add_match():
-    form = MatchForm()  # Certifique-se de ter um formulário para adicionar partidas
+    form = MatchForm()
+
+    # Preencher as escolhas dos times no formulário
     form.team_a_id.choices = [(team.id, team.name) for team in Team.query.all()]
     form.team_b_id.choices = [(team.id, team.name) for team in Team.query.all()]
 
-    if form.validate_on_submit():
+    if form.validate_on_submit():  # Quando o formulário for enviado e validado
         team_a_id = form.team_a_id.data
         team_b_id = form.team_b_id.data
-        score_a = form.score_a.data
-        score_b = form.score_b.data
 
-        # Criar nova partida
-        match = Match(team_a_id=team_a_id, team_b_id=team_b_id, score_a=score_a, score_b=score_b)
+        # Criar nova partida com placar None (não finalizado)
+        match = Match(team_a_id=team_a_id, team_b_id=team_b_id, score_a=None, score_b=None)
         db.session.add(match)
+        db.session.commit()  # Commit para salvar a partida no banco
 
-        # Atualizar os gols dos jogadores
-        players_a = Player.query.filter_by(team_id=team_a_id).all()
-        players_b = Player.query.filter_by(team_id=team_b_id).all()
-
-        if players_a:
-            for player in players_a:
-                player.goals += score_a // len(players_a)
-        if players_b:
-            for player in players_b:
-                player.goals += score_b // len(players_b)
-
-        db.session.commit()
-
-        flash('Resultado da partida adicionado com sucesso!', 'success')
-        return redirect(url_for('matches'))  # Redireciona para a tabela de partidas
+        flash('Partida adicionada com sucesso!', 'success')
+        return redirect(url_for('matches'))  # Redireciona para a página de partidas
 
     return render_template('add_match.html', form=form)
-
 
 @app.route('/add_team', methods=['GET', 'POST'])
 def add_team():
@@ -95,18 +83,45 @@ def standings():
         matches_as_team_a = Match.query.filter_by(team_a_id=team.id).all()
         matches_as_team_b = Match.query.filter_by(team_b_id=team.id).all()
 
-        total_matches = len(matches_as_team_a) + len(matches_as_team_b)
-        total_goals_scored = sum(match.score_a for match in matches_as_team_a) + sum(match.score_b for match in matches_as_team_b)
-        total_goals_against = sum(match.score_b for match in matches_as_team_a) + sum(match.score_a for match in matches_as_team_b)
-        goal_difference = total_goals_scored - total_goals_against
+        total_matches = 0
+        total_goals_scored = 0
+        total_goals_against = 0
+        goal_difference = 0
 
-        wins = sum(1 for match in matches_as_team_a if match.score_a > match.score_b) + \
-               sum(1 for match in matches_as_team_b if match.score_b > match.score_a)
-        draws = sum(1 for match in matches_as_team_a if match.score_a == match.score_b) + \
-                sum(1 for match in matches_as_team_b if match.score_b == match.score_a)
-        losses = total_matches - (wins + draws)
+        wins = 0
+        draws = 0
+        losses = 0
 
-        points = (wins * 3) + draws  # 3 pontos por vitória, 1 ponto por empate
+        # Contabiliza apenas os jogos finalizados, ou empate 0x0
+        for match in matches_as_team_a:
+            if match.score_a is not None and match.score_b is not None:  # Jogo finalizado
+                total_matches += 1
+                total_goals_scored += match.score_a
+                total_goals_against += match.score_b
+                goal_difference += match.score_a - match.score_b
+
+                if match.score_a > match.score_b:  # Vitória do Time A
+                    wins += 1
+                elif match.score_a == match.score_b:  # Empate (0x0)
+                    draws += 1
+                else:  # Derrota para o Time A
+                    losses += 1
+
+        for match in matches_as_team_b:
+            if match.score_a is not None and match.score_b is not None:  # Jogo finalizado
+                total_matches += 1
+                total_goals_scored += match.score_b
+                total_goals_against += match.score_a
+                goal_difference += match.score_b - match.score_a
+
+                if match.score_b > match.score_a:  # Vitória do Time B
+                    wins += 1
+                elif match.score_a == match.score_b:  # Empate (0x0)
+                    draws += 1
+                else:  # Derrota para o Time B
+                    losses += 1
+
+        points = (wins * 3) + (draws * 1)  # 3 pontos por vitória, 1 ponto por empate
 
         standings_data.append({
             'team': team.name,
@@ -121,12 +136,12 @@ def standings():
         })
 
     standings_data.sort(key=lambda x: (x['points'], x['goal_difference'], x['goals_scored']), reverse=True)
+
+    # Atribui a posição ao time
     for index, team_data in enumerate(standings_data, start=1):
         team_data['position'] = index
 
     return render_template('standings.html', standings=standings_data)
-
-
 
 @app.route('/top_scorers')
 def top_scorers():

@@ -1,42 +1,57 @@
 <!doctype html>
 <html>
 <head>
-    <title>Tabela da Copa Terça Féra 2024 </title>
+    <title>Tabela da Copa Terça-feira 2024</title>
     <link rel="stylesheet" href="../static/css/matches.css"> 
 </head>
 <body>
-    <h1>Tabela de jogos da Copa Terça Féra 2024</h1>
+    <h1>Tabela de jogos da Copa Terça-feira 2024</h1>
+
     <table>
-        <tr>
-            <th>Mandante</th>
-            <th>Gols</th>
-            <th>Visitante</th>
-            <th>Gols</th>
-        </tr>
-        {% for match in matches %}
-        <tr>
-            <td class="centralizar">
-                <img class='logo-time' src="{{ url_for('static', filename='logos/' + match.team_a.name|lower|replace(' ', '_') + '.jpeg') }}" 
-                 alt="{{ match.team_a.name }} logo">
-
-
-                {{ match.team_a.name }}
-            </td>
-            <td class="score">
-                <span class="gols">{{ match.score_a }}</td></span>
-            <td class="centralizar"> 
-                <img class='logo-time' src="{{ url_for('static', filename='logos/' + match.team_b.name|lower|replace(' ', '_') + '.jpeg') }}" 
-                alt="{{ match.team_b.name }} logo">
-
-
-                {{ match.team_b.name }}
-            </td>
-            <td class="score">
-                <span class="gols">{{ match.score_b }}</span>
-            </td>
-            <td><a href="{{ url_for('edit_match', match_id=match.id) }}">Editar</a></td>  <!-- Link para editar -->
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>Mandante</th>
+                <th>Gols</th>
+                <th>Visitante</th>
+                <th>Gols</th>
+                <th>Ações</th>  <!-- Para editar -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in matches %}
+            <tr>
+                <td class="centralizar">
+                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + match.team_a.name|lower|replace(' ', '_') + '.jpeg') }}" 
+                        alt="{{ match.team_a.name }} logo">
+                    <br>
+                    {{ match.team_a.name }}
+                </td>
+                <td class="score">
+                    {% if match.score_a is not none %}
+                        <span class="gols">{{ match.score_a }}</span>
+                    {% else %}
+                        <span class="gols aguardando">Aguardando Resultado</span>  <!-- Exibe texto se o placar não estiver definido -->
+                    {% endif %}
+                </td>
+                <td class="centralizar">
+                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + match.team_b.name|lower|replace(' ', '_') + '.jpeg') }}" 
+                        alt="{{ match.team_b.name }} logo">
+                    <br>
+                    {{ match.team_b.name }}
+                </td>
+                <td class="score">
+                    {% if match.score_b is not none %}
+                        <span class="gols">{{ match.score_b }}</span>
+                    {% else %}
+                        <span class="gols aguardando">Aguardando Resultado</span>  <!-- Exibe texto se o placar não estiver definido -->
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_match', match_id=match.id) }}">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
     <a href="{{ url_for('index') }}">Voltar</a>
 </body>

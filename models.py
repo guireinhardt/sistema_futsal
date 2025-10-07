@@ -4,36 +4,42 @@ from sqlalchemy import func, UniqueConstraint
 db = SQLAlchemy()
 
 class Team(db.Model):
-    __tablename__ = 'team'  # É uma boa prática definir o nome da tabela
+    __tablename__ = 'team'  # Nome da tabela
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
-    
-    # Renomeando os backrefs para evitar conflitos
-    matches_as_team_a = db.relationship('Match', foreign_keys='Match.team_a_id', backref='team_a_ref', lazy=True)
-    matches_as_team_b = db.relationship('Match', foreign_keys='Match.team_b_id', backref='team_b_ref', lazy=True)
-    players = db.relationship('Player', backref='team_ref')  # Renomeado para evitar conflito
+
+    # Relacionamentos com partidas, usando back_populates
+    matches_as_team_a = db.relationship('Match', foreign_keys='Match.team_a_id', back_populates='team_a', lazy=True)
+    matches_as_team_b = db.relationship('Match', foreign_keys='Match.team_b_id', back_populates='team_b', lazy=True)
+
+    players = db.relationship('Player', backref='team_ref')  # Relacionamento com os jogadores
 
 class Match(db.Model):
-    __tablename__ = 'match'  # Defina o nome da tabela
+    __tablename__ = 'match'  # Nome da tabela
     id = db.Column(db.Integer, primary_key=True)
     team_a_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
     team_b_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
-    score_a = db.Column(db.Integer, nullable=True)
-    score_b = db.Column(db.Integer, nullable=True)
+    
+    # Alterando para permitir valores None (não atribuindo valor padrão)
+    score_a = db.Column(db.Integer, nullable=True)  # Permite valores None
+    score_b = db.Column(db.Integer, nullable=True)  # Permite valores None
 
-    # Renomeando os backrefs para evitar conflitos
-    team_a = db.relationship('Team', foreign_keys=[team_a_id], backref='matches_as_team_a_ref')
-    team_b = db.relationship('Team', foreign_keys=[team_b_id], backref='matches_as_team_b_ref')
+    # Relacionamentos com as equipes, usando back_populates
+    team_a = db.relationship('Team', foreign_keys=[team_a_id], back_populates='matches_as_team_a')
+    team_b = db.relationship('Team', foreign_keys=[team_b_id], back_populates='matches_as_team_b')
+
 
 class Player(db.Model):
-    __tablename__ = 'player'  # Defina o nome da tabela
+    __tablename__ = 'player'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
-    position = db.Column(db.String(30), nullable=False)  # Uma única posição
+    position = db.Column(db.String(30), nullable=False)
     goals = db.Column(db.Integer, default=0)
 
-    team = db.relationship('Team', backref='players_list')  # Renomeado para evitar conflito
+    # Relacionamento com o time, agora com back_populates
+    team = db.relationship('Team', back_populates='players', uselist=False)  # Relacionamento com o time (1:1)
+
 
 class Goal(db.Model):
     __tablename__ = 'goal'

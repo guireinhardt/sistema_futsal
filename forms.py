@@ -10,9 +10,8 @@ class TeamForm(FlaskForm):
 class MatchForm(FlaskForm):
     team_a_id = SelectField('Time A', coerce=int, validators=[DataRequired()])
     team_b_id = SelectField('Time B', coerce=int, validators=[DataRequired()])
-    score_a = IntegerField('Gols Time A', validators=[DataRequired()])
-    score_b = IntegerField('Gols Time B', validators=[DataRequired()])
-    submit = SubmitField('Salvar Resultado')
+    submit = SubmitField('Salvar Partida')
+
 
 class PlayerForm(FlaskForm):
     name = StringField('Nome', validators=[DataRequired()])
