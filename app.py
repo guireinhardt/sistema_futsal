@@ -77,21 +77,23 @@ def add_player():
 
 @app.route('/standings')
 def standings():
-    # Verifica se todos os jogos foram finalizados
-    all_matches_completed = check_all_matches_completed()  # ou calculado com a sua lógica
+    # Verifica se todos os jogos da fase de grupos foram finalizados
+    all_matches_completed = check_all_matches_completed()
 
-    standings_data = calculate_standings()  # Calcula a classificação
+    # Calcula a classificação geral
+    standings_data = calculate_standings()
 
-    # Gerar as semi-finais
-    semi_finals = generate_semi_finals(standings_data)
+    # Buscar partidas da semi-final e final do banco
+    semi_finals = Match.query.filter_by(phase='semi-final').all() if all_matches_completed else []
+    final_matches = Match.query.filter_by(phase='final').all() if all_matches_completed else []
 
-    # Gerar os times para a final
-    final_teams = [semi_finals[0]['winner'], semi_finals[1]['winner']] if all_matches_completed else []
-
-    return render_template('standings.html', standings=standings_data, 
-                           semi_finals=semi_finals, final_teams=final_teams, 
-                           all_matches_completed=all_matches_completed)
-
+    return render_template(
+        'standings.html',
+        standings=standings_data,
+        semi_finals=semi_finals,
+        final_matches=final_matches,
+        all_matches_completed=all_matches_completed
+    )
 
 @app.route('/top_scorers')
 def top_scorers():
@@ -235,6 +237,25 @@ def edit_match(match_id):
         players_b=players_b,
         stats_by_player=existing
     )
+
+@app.route('/generate_semi_finals', methods=['POST'])
+def generate_semi_finals():
+    # Garantir que a fase de grupos foi concluída
+    if check_all_matches_completed():
+        # Obter a classificação
+        standings_data = calculate_standings()
+
+        # Gerar as semi-finais com base na classificação
+        semi_finals = generate_semi_finals(standings_data)
+
+        # Salve as semi-finais no banco de dados ou qualquer outra lógica necessária
+        save_semi_finals(semi_finals)  # Se necessário
+
+        flash('Semi-Finais geradas com sucesso!', 'success')
+        return redirect(url_for('standings'))  # Redireciona para a página de classificação
+    else:
+        flash('Ainda aguardando todos os jogos da fase de grupos serem finalizados.', 'danger')
+        return redirect(url_for('standings'))
 
 
 

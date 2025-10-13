@@ -102,6 +102,8 @@ def generate_semi_finals(standings_data):
     # Retornando as semi-finais
     return [semi_final_1, semi_final_2]
 
+
+
 def save_semi_finals(standings_data):
     # Pegando os times vencedores da fase de grupos (1º x 4º e 2º x 3º)
     team_1 = standings_data[0]['team']
@@ -121,10 +123,17 @@ def save_semi_finals(standings_data):
 
 # Função para verificar se todos os jogos foram finalizados
 def check_all_matches_completed():
-    # Suponhamos que os jogos já realizados da fase anterior estão salvos na tabela `Match`
-    completed_matches = Match.query.filter(Match.score_a.isnot(None), Match.score_b.isnot(None)).count()
+    # Verifica quantas partidas cada time jogou na fase de grupos
+    teams = Team.query.all()
     
-    total_matches_required = 5  # Ou quantos jogos forem necessários para completar a fase
-    
-    return completed_matches == total_matches_required
+    for team in teams:
+        # Contabiliza as partidas jogadas por cada time na fase de grupos
+        matches_as_team_a = Match.query.filter_by(team_a_id=team.id, phase='fase de grupos').count()
+        matches_as_team_b = Match.query.filter_by(team_b_id=team.id, phase='fase de grupos').count()
 
+        # Se o time não tiver jogado exatamente 5 partidas, retorna False
+        if matches_as_team_a + matches_as_team_b != 5:
+            return False  # Se qualquer time não tiver jogado 5 partidas, retorna False
+
+    # Se todos os times tiverem jogado exatamente 5 partidas, retorna True
+    return True
