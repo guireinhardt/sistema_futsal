@@ -31,9 +31,10 @@ def add_match():
     if form.validate_on_submit():  # Quando o formulário for enviado e validado
         team_a_id = form.team_a_id.data
         team_b_id = form.team_b_id.data
+        phase = form.phase.data  # Captura a fase selecionada no formulário
 
         # Criar nova partida com placar None (não finalizado)
-        match = Match(team_a_id=team_a_id, team_b_id=team_b_id, score_a=None, score_b=None)
+        match = Match(team_a_id=team_a_id, team_b_id=team_b_id, phase=phase, score_a=None, score_b=None)
         db.session.add(match)
         db.session.commit()  # Commit para salvar a partida no banco
 
@@ -77,23 +78,20 @@ def add_player():
 @app.route('/standings')
 def standings():
     # Verifica se todos os jogos foram finalizados
-    if not check_all_matches_completed():
-        flash('Aguardando todos os jogos serem finalizados para exibir as semi-finais.', 'warning')
-        standings_data = calculate_standings()  # Calcula a classificação
-        return render_template('standings.html', standings=standings_data, all_matches_completed=False)  # Passa a flag 'all_matches_completed=False'
+    all_matches_completed = check_all_matches_completed()  # ou calculado com a sua lógica
 
-    standings_data = calculate_standings()  # Chama a função para calcular a classificação
+    standings_data = calculate_standings()  # Calcula a classificação
 
     # Gerar as semi-finais
     semi_finals = generate_semi_finals(standings_data)
 
-    # Salvar as semi-finais no banco de dados
-    save_semi_finals(standings_data)
+    # Gerar os times para a final
+    final_teams = [semi_finals[0]['winner'], semi_finals[1]['winner']] if all_matches_completed else []
 
-    # Gerar os times para a final (após os jogos de semi-final serem definidos)
-    final_teams = [semi_finals[0]['winner'], semi_finals[1]['winner']]  # Aqui você pode atualizar após os vencedores das semi-finais
+    return render_template('standings.html', standings=standings_data, 
+                           semi_finals=semi_finals, final_teams=final_teams, 
+                           all_matches_completed=all_matches_completed)
 
-    return render_template('standings.html', standings=standings_data, semi_finals=semi_finals, final_teams=final_teams, all_matches_completed=True)
 
 @app.route('/top_scorers')
 def top_scorers():
@@ -135,38 +133,54 @@ def edit_player(player_id):
 def edit_match(match_id):
     match = Match.query.get_or_404(match_id)
 
+    # Pega todos os jogadores dos dois times
     players_a = Player.query.filter_by(team_id=match.team_a_id).order_by(Player.name).all()
     players_b = Player.query.filter_by(team_id=match.team_b_id).order_by(Player.name).all()
 
     if request.method == 'POST':
-        # 1) salva o placar (sem vincular à soma dos artilheiros)
+        # 1) Salva o placar da partida
         match.score_a = int(request.form.get('score_a') or 0)
         match.score_b = int(request.form.get('score_b') or 0)
 
-        # 2) lê os gols por jogador
-        counts_a = {p.id: int(request.form.get(f'goals_a_{p.id}', 0) or 0) for p in players_a}
-        counts_b = {p.id: int(request.form.get(f'goals_b_{p.id}', 0) or 0) for p in players_b}
+        # 2) Lê os stats por jogador (goals, saves, assists)
+        counts_a = {
+            p.id: {
+                'goals': int(request.form.get(f'goals_a_{p.id}', 0) or 0),
+                'saves': int(request.form.get(f'saves_a_{p.id}', 0) or 0),
+                'assists': int(request.form.get(f'assists_a_{p.id}', 0) or 0)
+            } for p in players_a
+        }
+
+        counts_b = {
+            p.id: {
+                'goals': int(request.form.get(f'goals_b_{p.id}', 0) or 0),
+                'saves': int(request.form.get(f'saves_b_{p.id}', 0) or 0),
+                'assists': int(request.form.get(f'assists_b_{p.id}', 0) or 0)
+            } for p in players_b
+        }
 
         touched_ids = set()
 
-        # upsert stats do Time A
-        for pid, n in counts_a.items():
+        # Upsert stats do Time A
+        for pid, stats in counts_a.items():
             stat = PlayerMatchStat.query.filter_by(match_id=match.id, player_id=pid).first()
-            if n == 0:
+            if stats['goals'] == 0 and stats['saves'] == 0 and stats['assists'] == 0:
                 if stat:
-                    db.session.delete(stat)  # remove linha se zerou
+                    db.session.delete(stat)
             else:
                 if not stat:
                     stat = PlayerMatchStat(match_id=match.id, player_id=pid, team_id=match.team_a_id)
                     db.session.add(stat)
-                stat.team_id = match.team_a_id  # garante time correto
-                stat.goals = n
+                stat.team_id = match.team_a_id
+                stat.goals = stats['goals']
+                stat.saves = stats['saves']
+                stat.assists = stats['assists']
                 touched_ids.add(pid)
 
-        # upsert stats do Time B
-        for pid, n in counts_b.items():
+        # Upsert stats do Time B
+        for pid, stats in counts_b.items():
             stat = PlayerMatchStat.query.filter_by(match_id=match.id, player_id=pid).first()
-            if n == 0:
+            if stats['goals'] == 0 and stats['saves'] == 0 and stats['assists'] == 0:
                 if stat:
                     db.session.delete(stat)
             else:
@@ -174,36 +188,52 @@ def edit_match(match_id):
                     stat = PlayerMatchStat(match_id=match.id, player_id=pid, team_id=match.team_b_id)
                     db.session.add(stat)
                 stat.team_id = match.team_b_id
-                stat.goals = n
+                stat.goals = stats['goals']
+                stat.saves = stats['saves']
+                stat.assists = stats['assists']
                 touched_ids.add(pid)
 
         db.session.commit()
 
-        # 3) (opcional) atualizar o agregado Player.goals só dos jogadores tocados
+        # 3) Atualizar o agregado Player.goals (opcional)
         if touched_ids:
             rows = (
-                db.session.query(PlayerMatchStat.player_id, func.coalesce(func.sum(PlayerMatchStat.goals), 0))
+                db.session.query(
+                    PlayerMatchStat.player_id,
+                    func.coalesce(func.sum(PlayerMatchStat.goals), 0),
+                    func.coalesce(func.sum(PlayerMatchStat.saves), 0),
+                    func.coalesce(func.sum(PlayerMatchStat.assists), 0)
+                )
                 .filter(PlayerMatchStat.player_id.in_(touched_ids))
                 .group_by(PlayerMatchStat.player_id)
                 .all()
             )
-            totals = {pid: total for pid, total in rows}
+
+            totals = {pid: {'goals': g, 'saves': s, 'assists': a} for pid, g, s, a in rows}
             for player in Player.query.filter(Player.id.in_(touched_ids)).all():
-                player.goals = totals.get(player.id, 0)
+                player.goals = totals.get(player.id, {}).get('goals', 0)
+                # Se quiser, você pode adicionar campos agregados de saves/assists no Player
+                # player.saves = totals.get(player.id, {}).get('saves', 0)
+                # player.assists = totals.get(player.id, {}).get('assists', 0)
+
             db.session.commit()
 
-        flash('Partida e artilheiros da partida salvos (independentes do placar).', 'success')
+        flash('Partida e estatísticas dos jogadores salvos com sucesso.', 'success')
         return redirect(url_for('matches'))
 
-    # GET: pré-preenche com o que já existe
-    existing = {s.player_id: s.goals for s in PlayerMatchStat.query.filter_by(match_id=match.id).all()}
+    # GET: pré-preenche os stats existentes para o formulário
+    existing = {}
+    for s in PlayerMatchStat.query.filter_by(match_id=match.id).all():
+        existing[s.player_id] = s.goals
+        existing[f"{s.player_id}_saves"] = s.saves
+        existing[f"{s.player_id}_assists"] = s.assists
 
     return render_template(
         'edit_match.html',
         match=match,
         players_a=players_a,
         players_b=players_b,
-        stats_by_player=existing  # dict {player_id: gols nesta partida}
+        stats_by_player=existing
     )
 
 

@@ -25,8 +25,8 @@ body {
 
 /* Logo dentro do formulário */
 .form-logo {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     border: 3px solid #af1411; /* Vermelho */
     object-fit: cover;

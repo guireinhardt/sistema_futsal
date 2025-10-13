@@ -1,0 +1,98 @@
+/* Fonte Poppins Regular */
+body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400; /* Regular 400 */
+    background-color: #ffffff;
+    color: #201f57; /* azul escuro */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Card do formulário */
+.form-card {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 15px;
+    border: 2px solid #060a6c;
+    padding: 40px;
+    background-color: #f9f9f9;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* Logo central */
+.form-logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #af1411;
+    object-fit: cover;
+}
+
+/* Título do card */
+.card-title {
+    font-weight: 400; /* Regular 400 */
+    font-size: 2rem;
+    color: #060a6c;
+    margin-bottom: 30px;
+}
+
+/* Inputs e botão */
+.form-control {
+    border-radius: 10px;
+    border: 1.5px solid #201f57;
+    font-weight: 400; /* Regular 400 */
+    padding: 12px 15px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 5px rgba(175,20,17,0.5);
+    border-color: #af1411;
+}
+
+.btn-danger {
+    background-color: #af1411;
+    border-color: #af1411;
+    font-weight: 400; /* Regular 400 */
+    font-size: 1.1rem;
+    padding: 12px 0;
+    transition: transform 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #201f57;
+    border-color: #201f57;
+    transform: translateY(-2px);
+}
+
+/* Link voltar */
+a.text-primary {
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+
+a.text-primary:hover {
+    color: #af1411;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.8rem;
+    }
+    .form-card {
+        padding: 30px;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-title {
+        font-size: 1.5rem;
+    }
+    .form-card {
+        padding: 20px;
+        max-width: 350px;
+    }
+}

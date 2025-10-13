@@ -1,186 +1,157 @@
-/* Estilo do título principal */
-.titulo {
-    text-align: center;
-    color: #002743;
-    font-family: 'Arial', sans-serif;
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 20px;
+/* Fonte Poppins */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #ffffff; /* Cor de fundo limpa e sem cinza */
+    color: #201f57;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
 }
 
-/* Estilo da tabela */
+/* Cabeçalho */
+.site-header {
+    background-color: #ffffff;  /* Cor do fundo do cabeçalho agora é branco */
+    color: #201f57;
+    text-align: center;
+    padding: 20px;
+    border-bottom: 2px solid #ddd; /* Se você quiser um border mais leve, você pode ajustar a cor */
+}
+
+.site-header h1 {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-top: 20px;
+    color: #060a6c;  /* Azul escuro */
+}
+
+.logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #af1411;
+    object-fit: cover;
+}
+
+/* Mensagem de Aguardando Fase de Grupos */
+.alert {
+    background-color: transparent; /* Remove o fundo */
+    color: #ff7f00;  /* Cor laranja para o texto */
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 16px;
+    margin-top: 20px;
+    width: 100%; /* Garante que a mensagem ocupe toda a largura disponível */
+    box-sizing: border-box; /* Para não ultrapassar as margens */
+}
+
+
+
+/* Tabela de Classificação */
+.table-container {
+    width: 70%; /* Reduz a largura da tabela para 70% da tela */
+    margin: 0 auto; /* Centraliza a tabela */
+    margin-top: 30px;
+}
+
 .tabelaClassificacao {
-    width: 60%;
-    margin: 0 auto;
+    width: 100%;
     border-collapse: collapse;
-    font-family: 'Arial', sans-serif;
-    background-color: #ffffff;
-    color: #002743;
+    background-color: #ffffff; /* Fundo mais suave */
+    color: #201f57;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1); /* Suaviza o contorno */
 }
 
-/* Estilo do logo dos times */
-.logo-time {
-    width: 100%;      /* Tamanho automático para manter a proporção */
-    height: 40px;     /* Altura fixa adequada para o layout */
-    object-fit: contain;  /* Mantém a proporção e ajusta ao contêiner */
-    vertical-align: middle;
-    margin-right: 10px;  /* Espaço entre o logo e o nome do time */
-    image-rendering: -webkit-optimize-contrast; /* Melhora a renderização para imagens raster */
-    image-rendering: crisp-edges; /* Para imagens PNG de baixa resolução */
-    border-radius: 50%;  /* Deixa o logo em formato circular (opcional) */
-}
 
-/* Cabeçalho da tabela */
 .tabelaClassificacao th {
-    background-color: #123b67;
+    background-color: #060a6c;
+    color: #fff;
     padding: 15px;
-    font-size: 16px;
-    font-weight: bold;
     text-align: center;
-    color: white;
+    font-size: 16px;
 }
 
-/* Corpo da tabela */
 .tabelaClassificacao td {
     padding: 10px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
     font-size: 16px;
-}
-
-/* Coluna de classificação (#) */
-.tabelaClassificacao td:first-child {
-    font-size: 24px;
-    font-weight: bold;
-    background-color: #002743;
-    color: #ffffff;
-    width: 50px;
-}
-
-/* Cores para as posições com base em sua classificação */
-.tabelaClassificacao tr:nth-child(-n+4) td:first-child {
-    background-color: #228822; /* Verde para os primeiros 4 colocados */
-}
-
-.tabelaClassificacao tr:nth-child(n+5):nth-child(-n+6) td:first-child {
-    background-color: #ff5733; /* Amarelo para 5º e 6º colocados */
-}
-
-/* Estilo da coluna dos times */
-.tabelaClassificacao td:nth-child(2) {
-    text-align: left;
-    padding-left: 10px;
-}
-
-/* Diferenciação das linhas */
-.tabelaClassificacao tr:nth-child(even) {
-    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
 }
 
 .tabelaClassificacao tr:nth-child(odd) {
-    background-color: #ffffff;
+    background-color: #ffffff; /* Tabela com fundo branco */
 }
 
-/* Remover a borda da última linha */
-.tabelaClassificacao tr:last-child td {
-    border-bottom: none;
+.tabelaClassificacao tr:nth-child(even) {
+    background-color: #ffffff; /* Tabela com fundo branco */
 }
 
-/* Estilo das siglas abaixo da tabela */
+/* Cores dos Top 4 */
+.tabelaClassificacao tr:nth-child(-n+4) td:first-child {
+    background-color: #228822; /* Verde */
+    color: white;
+}
+
+/* Estilo dos logos dos times */
+.logo-time {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Estilo para Semi-Final */
+.semi-final-titulo {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff;  /* Cor azul */
+    margin-top: 40px;
+}
+
+/* Estilo para a Final */
+.final-titulo {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #28a745;  /* Cor verde */
+    margin-top: 40px;
+}
+
+footer {
+    background-color: #ffffff; /* Fundo branco para o footer */
+    color: #201f57;
+    padding: 20px;
+    text-align: center;
+    font-size: 16px;
+    margin-top: auto;
+}
+
+/* Botão voltar */
+.btn-primary {
+    background-color: #af1411;
+    border-color: #af1411;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: white;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background-color: #201f57;
+    border-color: #201f57;
+    text-decoration: none;
+}
+
+/* Siglas */
 .siglas {
     text-align: center;
     font-size: 14px;
     color: #555555;
     margin-top: 20px;
-    font-family: 'Arial', sans-serif;
-}
-
-/* Link para voltar */
-a {
-    display: block;
-    text-align: center;
-    font-size: 16px;
-    color: #002743;
-    text-decoration: none;
-    font-weight: bold;
-    margin-top: 20px;
-}
-
-a:hover {
-    color: #1cdd9b;
-}
-
-/* Borda arredondada para a tabela */
-.tabelaClassificacao {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* Estilo para as semi-finais */
-.semi-final-titulo {
-    text-align: center;
-    margin-top: 40px;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #007bff;  /* Cor azul para semi-finais */
-}
-
-.semi-final {
-    width: 60%;
-    margin: 0 auto;
-    background-color: #ffffff;
-    color: #002743;
-    border-radius: 10px;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
-    margin-top: 20px;
-}
-
-.semi-final th, .semi-final td {
-    border-bottom: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-.semi-final tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.semi-final tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-/* Estilo para a final */
-.final-titulo {
-    text-align: center;
-    margin-top: 40px;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #28a745;  /* Cor verde para a final */
-}
-
-.final {
-    width: 60%;
-    margin: 0 auto;
-    background-color: #ffffff;
-    color: #002743;
-    border-radius: 10px;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
-    margin-top: 20px;
-}
-
-.final th, .final td {
-    border-bottom: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-.final tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.final tr:nth-child(odd) {
-    background-color: #ffffff;
+    font-family: 'Poppins', sans-serif;
 }

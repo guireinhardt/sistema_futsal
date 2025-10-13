@@ -1,93 +1,81 @@
-/* Estilo Geral */
+/* Fonte Poppins Regular */
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400; /* Regular 400 */
+    background-color: #ffffff;
+    color: #201f57; /* Azul escuro */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
-    padding: 0;
+}
+
+/* Header */
+.site-header {
+    background-color: #060a6c; /* Azul escuro */
+    color: #ffffff;
     text-align: center;
 }
 
-header {
-    background-color: #00796b; /* Verde escuro */
-    padding: 20px;
-    color: #fff;
-}
-
-header h1 {
-    font-size: 2.5em;
+.site-header h1 {
+    font-size: 2.5rem;
+    font-weight: 500; /* Montserrat 500 */
     margin: 0;
-    text-shadow: 2px 2px 4px #004d40;
 }
 
-.logo img {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 10px;
+/* Logo */
+.logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #af1411; /* Vermelho */
+    object-fit: cover;
 }
 
-/* Seção do conteúdo */
-.content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 0;
-    background-color: #e0f7fa; /* Fundo azul claro */
+/* Cards do menu */
+.menu-card .card {
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #ffffff;
+    border: 2px solid #201f57;
 }
 
-.menu {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
+.menu-card .card-title {
+    font-size: 1.2rem;
+    font-weight: 500; /* Montserrat 500 */
+    color: #060a6c;
 }
 
-.menu-item {
-    display: inline-block;
-    padding: 15px 30px;
-    background-color: #00796b;
-    color: #fff;
-    font-size: 1.2em;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.menu-card:hover .card {
+    transform: translateY(-5px) scale(1.05);
+    border-color: #af1411;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
 }
 
-.menu-item:hover {
-    background-color: #004d40;
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Rodapé */
-footer {
-    background-color: #00796b;
-    color: white;
-    padding: 10px 0;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
-}
-
-footer p {
-    margin: 0;
+/* Footer */
+.site-footer {
+    background-color: #060a6c;
+    color: #ffffff;
+    font-weight: 400; /* Regular 400 */
+    flex-shrink: 0;
+    font-style: italic; /* Footer em itálico */
 }
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .menu-item {
-        width: 80%;
+    .site-header h1 {
+        font-size: 2rem;
+    }
+    .menu-card .card-title {
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    header h1 {
-        font-size: 2em;
+    .site-header h1 {
+        font-size: 1.8rem;
     }
-    
-    .menu-item {
-        font-size: 1em;
-        padding: 10px 20px;
+    .menu-card .card-title {
+        font-size: 0.95rem;
     }
 }

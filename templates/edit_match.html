@@ -37,9 +37,9 @@
   <h1>Editar: {{ match.team_a.name }} x {{ match.team_b.name }}</h1>
 
   <form method="POST">
-    <!-- CSRF: requer inject_csrf_token() no app para disponibilizar csrf_token() -->
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+    <!-- Placar -->
     <p>
       <label><strong>{{ match.team_a.name }}</strong></label><br>
       <label>Placar {{ match.team_a.name }}:
@@ -54,54 +54,57 @@
       </label>
     </p>
 
+    <!-- Estatísticas dos jogadores -->
     <div class="cols">
+      <!-- Time A -->
       <div class="col">
-        <h3>Gols nesta partida — {{ match.team_a.name }}</h3>
+        <h3>Estatísticas — {{ match.team_a.name }}</h3>
         <table>
           <thead>
-            <tr><th>Jogador</th><th>Gols</th></tr>
+            <tr>
+              <th>Jogador</th>
+              <th>Gols</th>
+              <th>Defesas</th>
+              <th>Assistências</th>
+            </tr>
           </thead>
           <tbody>
-            {% for p in match.team_a.players_list %}
+            {% for p in players_a %}
               <tr>
                 <td>{{ p.name }}</td>
-                <td>
-                  <input
-                    type="number"
-                    min="0"
-                    name="goals_a_{{ p.id }}"
-                    value="{% if stats_by_player is defined %}{{ stats_by_player.get(p.id, 0) }}{% else %}0{% endif %}"
-                  >
-                </td>
+                <td><input type="number" min="0" name="goals_a_{{ p.id }}" value="{{ stats_by_player.get(p.id, 0) }}"></td>
+                <td><input type="number" min="0" name="saves_a_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_saves', 0) }}"></td>
+                <td><input type="number" min="0" name="assists_a_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_assists', 0) }}"></td>
               </tr>
             {% else %}
-              <tr><td colspan="2" class="muted">Sem jogadores cadastrados no {{ match.team_a.name }}.</td></tr>
+              <tr><td colspan="4" class="muted">Sem jogadores cadastrados no {{ match.team_a.name }}.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
+      <!-- Time B -->
       <div class="col">
-        <h3>Gols nesta partida — {{ match.team_b.name }}</h3>
+        <h3>Estatísticas — {{ match.team_b.name }}</h3>
         <table>
           <thead>
-            <tr><th>Jogador</th><th>Gols</th></tr>
+            <tr>
+              <th>Jogador</th>
+              <th>Gols</th>
+              <th>Defesas</th>
+              <th>Assistências</th>
+            </tr>
           </thead>
           <tbody>
-            {% for p in match.team_b.players_list %}
+            {% for p in players_b %}
               <tr>
                 <td>{{ p.name }}</td>
-                <td>
-                  <input
-                    type="number"
-                    min="0"
-                    name="goals_b_{{ p.id }}"
-                    value="{% if stats_by_player is defined %}{{ stats_by_player.get(p.id, 0) }}{% else %}0{% endif %}"
-                  >
-                </td>
+                <td><input type="number" min="0" name="goals_b_{{ p.id }}" value="{{ stats_by_player.get(p.id, 0) }}"></td>
+                <td><input type="number" min="0" name="saves_b_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_saves', 0) }}"></td>
+                <td><input type="number" min="0" name="assists_b_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_assists', 0) }}"></td>
               </tr>
             {% else %}
-              <tr><td colspan="2" class="muted">Sem jogadores cadastrados no {{ match.team_b.name }}.</td></tr>
+              <tr><td colspan="4" class="muted">Sem jogadores cadastrados no {{ match.team_b.name }}.</td></tr>
             {% endfor %}
           </tbody>
         </table>

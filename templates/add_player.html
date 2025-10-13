@@ -3,33 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../static/css/style.css"> 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/style.css">
     <title>Adicionar Jogador</title>
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Adicionar Jogador</h2>
+
+<!-- Formulário de Adicionar Jogador -->
+<div class="container mt-5">
+    <!-- Formulário Card -->
+    <div class="form-card">
+        <!-- Logo dentro do formulário -->
+        <div class="text-center mb-4">
+            <img src="../static/logos/logo-tf.jpg" alt="Logo Futsal" class="form-logo mb-3">
+        </div>
+
+        <h2 class="text-center mb-4">Adicionar Jogador</h2>
         <form method="POST">
             {{ form.hidden_tag() }}
-            <div class="form-group">
-                <label for="name">{{ form.name.label }}</label>
-                {{ form.name(class="form-control") }}
+
+            <!-- Nome do jogador -->
+            <div class="mb-4">
+                <label for="name" class="form-label">{{ form.name.label }}</label>
+                {{ form.name(class="form-control", placeholder="Nome do Jogador") }}
             </div>
-            <div class="form-group">
-                <label for="team_id">{{ form.team_id.label }}</label>
+
+            <!-- Seleção do time -->
+            <div class="mb-4">
+                <label for="team_id" class="form-label">{{ form.team_id.label }}</label>
                 {{ form.team_id(class="form-control") }}
             </div>
-            <div class="form-group">
-                <label for="position">{{ form.position.label }}</label>
+
+            <!-- Posição do jogador -->
+            <div class="mb-4">
+                <label for="position" class="form-label">{{ form.position.label }}</label>
                 {{ form.position(class="form-control") }}
             </div>
-            <div class="form-group">
-                <label for="goals">{{ form.goals.label }}</label>
+
+            <!-- Gols do jogador -->
+            <div class="mb-4">
+                <label for="goals" class="form-label">{{ form.goals.label }}</label>
                 {{ form.goals(class="form-control") }}
             </div>
-            {{ form.submit(class="btn btn-primary") }}
+
+            <!-- Botão de Envio -->
+            <div class="d-flex justify-content-center">
+                {{ form.submit(class="btn btn-danger btn-lg w-100") }}
+            </div>
         </form>
+
+        <!-- Botão Voltar abaixo do formulário -->
+        <div class="d-flex justify-content-center mt-3">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary w-100">Voltar</a>
+        </div>
     </div>
+</div>
+
 </body>
 </html>

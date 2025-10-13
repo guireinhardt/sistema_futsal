@@ -7,11 +7,19 @@ class TeamForm(FlaskForm):
     submit = SubmitField('Adicionar Time')
 
 
+
 class MatchForm(FlaskForm):
     team_a_id = SelectField('Time A', coerce=int, validators=[DataRequired()])
     team_b_id = SelectField('Time B', coerce=int, validators=[DataRequired()])
-    submit = SubmitField('Salvar Partida')
+    
+    # Novo campo de fase
+    phase = SelectField('Fase da Partida', choices=[
+        ('fase de grupos', 'Fase de Grupos'),
+        ('semi-final', 'Semi-final'),
+        ('final', 'Final')
+    ], validators=[DataRequired()])
 
+    submit = SubmitField('Adicionar Partida')
 
 class PlayerForm(FlaskForm):
     name = StringField('Nome', validators=[DataRequired()])

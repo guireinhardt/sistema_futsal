@@ -1,56 +1,83 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabela de Classificação</title>
-    <link rel="stylesheet" href="../static/css/classificacao.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/classificacao.css">
 </head>
 <body>
-    <h1 class="titulo">Tabela de Classificação</h1>
+
+    <!-- Header -->
+    <header class="site-header text-center py-4">
+        <img src="../static/logos/logo-tf.jpg" alt="Logo Futsal" class="logo mb-3">
+        <h1 class="titulo">Tabela de Classificação</h1>
+    </header>
 
     <!-- Mensagem de Aguardando Fase de Grupos -->
     {% if not all_matches_completed %}
-        <p style="color: orange; text-align: center;">Aguardando todos os jogos da fase de grupos serem finalizados para exibir as semi-finais.</p>
+        <p class="alert alert-warning text-center">Aguardando todos os jogos da fase de grupos serem finalizados para exibir as semi-finais.</p>
+    {% else %}
+        <!-- Botão para gerar e salvar Semi-finais (com ícone) -->
+        <section class="container my-5 text-center">
+            <form action="{{ url_for('generate_semi_finals') }}" method="POST">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Salvar Semi-Finais
+                </button>
+            </form>
+        </section>
     {% endif %}
 
     <!-- Tabela de Classificação -->
-    <table class="tabelaClassificacao">
-        <tr>
-            <th>#</th>
-            <th></th>
-            <th>Time</th>
-            <th>PG</th>
-            <th>J</th>
-            <th>V</th>
-            <th>E</th>
-            <th>D</th>
-            <th>GP</th>
-            <th>GC</th>
-            <th>SG</th>
-        </tr>
-        {% for data in standings %}
-        <tr>
-            <td>{{ data.position }}</td>
-            <td>
-                <img class='logo-time' src="{{ url_for('static', filename='logos/' + data.team|replace(' ', '_') + '.png') }}" 
-                     alt="{{ data.team }}">
-            </td>
-            <td>{{ data.team }}</td>
-            <td>{{ data.points }}</td>
-            <td>{{ data.matches }}</td>
-            <td>{{ data.wins }}</td>
-            <td>{{ data.draws }}</td>
-            <td>{{ data.losses }}</td>
-            <td>{{ data.goals_scored }}</td>
-            <td>{{ data.goals_against }}</td>
-            <td>{{ data.goal_difference }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <section class="container my-5">
+        <div class="table-container">
+            <table class="tabelaClassificacao">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Logo</th>
+                        <th>Time</th>
+                        <th>PG</th>
+                        <th>J</th>
+                        <th>V</th>
+                        <th>E</th>
+                        <th>D</th>
+                        <th>GP</th>
+                        <th>GC</th>
+                        <th>SG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in standings %}
+                    <tr>
+                        <td>{{ data.position }}</td>
+                        <td>
+                            <img class='logo-time' src="{{ url_for('static', filename='logos/' + data.team|replace(' ', '_') + '.png') }}" 
+                                 alt="{{ data.team }} logo">
+                        </td>
+                        <td>{{ data.team }}</td>
+                        <td>{{ data.points }}</td>
+                        <td>{{ data.matches }}</td>
+                        <td>{{ data.wins }}</td>
+                        <td>{{ data.draws }}</td>
+                        <td>{{ data.losses }}</td>
+                        <td>{{ data.goals_scored }}</td>
+                        <td>{{ data.goals_against }}</td>
+                        <td>{{ data.goal_difference }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <p class="siglas">SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols</p>
+    <!-- Siglas -->
+    <p class="siglas text-center">SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols</p>
 
-    <!-- Tabela de Semi-Finais -->
-    {% if semi_finals %}
+    <!-- Tabela de Semi-Finais (Oculta até todos os jogos da fase de grupos serem concluídos) -->
+    {% if all_matches_completed %}
+    <section id="semi-finals" class="container my-5">
         <h2 class="semi-final-titulo">Semi-Finais</h2>
         <table class="tabelaClassificacao semi-final">
             <thead>
@@ -58,22 +85,29 @@
                     <th>Jogo</th>
                     <th>Mandante</th>
                     <th>Visitante</th>
+                    <th>Ações</th>  <!-- Ícone de edição -->
                 </tr>
             </thead>
             <tbody>
                 {% for match in semi_finals %}
                 <tr>
                     <td>Semi-final</td>
-                    <td>{{ match.team_a }}</td>
-                    <td>{{ match.team_b }}</td>
+                    <td>{{ match.team_a.name }}</td>
+                    <td>{{ match.team_b.name }}</td>
+                    <td>
+                        <!-- Ícone de editar -->
+                        <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    {% endif %}
+    </section>
 
     <!-- Tabela da Final -->
-    {% if final_teams %}
+    <section id="final" class="container my-5" style="display: block;">
         <h2 class="final-titulo">Final</h2>
         <table class="tabelaClassificacao final">
             <thead>
@@ -81,18 +115,56 @@
                     <th>Jogo</th>
                     <th>Mandante</th>
                     <th>Visitante</th>
+                    <th>Ações</th>  <!-- Ícone de edição -->
                 </tr>
             </thead>
             <tbody>
+                {% if final_teams %}
                 <tr>
                     <td>Final</td>
                     <td>{{ final_teams[0] }}</td>
                     <td>{{ final_teams[1] }}</td>
+                    <td>
+                        <!-- Ícone de editar -->
+                        <a href="{{ url_for('edit_match', match_id=final_match.id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
                 </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">A final ainda não foi definida.</td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
+    </section>
     {% endif %}
 
-    <a href="{{ url_for('index') }}">Voltar</a>
+    <footer class="site-footer text-center py-3">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar</a>
+    </footer>
+
+    <script>
+    // Usando o filtro 'tojson' para passar a variável booleano corretamente para o JavaScript
+    var allMatchesCompleted = {{ all_matches_completed | tojson }};  // Isso converte para 'true' ou 'false' dependendo do valor
+
+    console.log("Valor de allMatchesCompleted:", allMatchesCompleted);  // Verificando no console o valor da variável
+
+    // Função para verificar se todos os jogos foram concluídos
+    function checkIfMatchesCompleted() {
+        if (allMatchesCompleted) {
+            // Exibe as tabelas de semi-finais e final
+            document.getElementById('semi-finals').style.display = 'block';
+            document.getElementById('final').style.display = 'block';
+        } else {
+            console.log("Ainda aguardando a finalização dos jogos.");
+        }
+    }
+
+    // Chama a função quando a página carregar
+    window.onload = checkIfMatchesCompleted;
+    </script>
+
 </body>
 </html>
