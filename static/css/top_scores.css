@@ -1,0 +1,86 @@
+/* Fonte Poppins 400 Regular */
+body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    background-color: #f9f9f9;  /* Cor de fundo clara */
+}
+
+/* Título principal */
+h1.display-4 {
+    font-weight: 600;
+    color: #d32f2f !important;  /* Cor vermelha para o título, substituímos o azul por vermelho */
+    text-transform: uppercase; /* Deixa o título em letras maiúsculas */
+    letter-spacing: 1px; /* Aumenta o espaçamento entre as letras */
+    margin-bottom: 30px;
+}
+
+/* Restante do CSS permanece o mesmo */
+
+
+/* Tabela */
+.table {
+    background-color: #fff;  /* Cor de fundo branca */
+    color: #060a6c;  /* Azul escuro para o texto */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave para a tabela */
+    margin-bottom: 50px;
+}
+
+.table th, .table td {
+    padding: 1rem;
+    text-align: center;
+    font-size: 16px;
+    border: 1px solid #ddd; /* Borda fina e suave */
+}
+
+/* Títulos da tabela */
+.table thead {
+    background-color: #060a6c;  /* Azul escuro */
+    color: white;
+    text-transform: uppercase; /* Letras maiúsculas no cabeçalho */
+    font-weight: bold;
+}
+
+/* Linhas alternadas da tabela */
+.table-striped tbody tr:nth-child(odd) {
+    background-color: #f8f9fa;  /* Linhas alternadas com fundo mais claro */
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e0e0e0;  /* Efeito de hover nas linhas */
+    cursor: pointer; /* Cursor de mãozinha ao passar em cima da linha */
+}
+
+/* Ajustes no botão de editar */
+.btn-warning {
+    background-color: #af1411; /* Cor de fundo do botão */
+    color: white;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+.btn-warning:hover {
+    background-color: #c30d00; /* Cor do botão quando passar o mouse */
+}
+
+/* Botão de Voltar */
+.btn-primary {
+    background-color: #060a6c;  /* Azul escuro */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #003366;  /* Azul mais escuro */
+}
+
+/* Ajustes para o layout responsivo */
+@media (max-width: 768px) {
+    .table th, .table td {
+        font-size: 14px;
+    }
+
+    .btn-lg {
+        font-size: 16px;
+    }
+}

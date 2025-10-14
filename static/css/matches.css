@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap');
 
 * {
     margin: 0;
@@ -7,51 +7,56 @@
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
-    background: #f4f4f9;  /* Cor de fundo mais suave */
-    color: #333;  /* Cor de texto escuro para contraste */
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
 }
 
 h1 {
-    text-align: center;
-    color: #333;
-    font-size: 2rem;
+    color: #201f57;  /* Azul escuro */
+    font-size: 2.5rem;
     margin-top: 20px;
 }
 
-table {
-    width: 80%;
-    background: #fff;  /* Fundo branco para a tabela */
-    color: #333;  /* Cor do texto na tabela */
-    margin-inline: auto;
-    margin-block: 1rem;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);  /* Sombra suave para destacar a tabela */
-    overflow: hidden;
+.fase-container {
+    margin-bottom: 40px;
 }
 
-table tr td, table tr th {
-    border-bottom: 1px solid #ddd;  /* Bordas mais suaves */
-    padding: 0.8rem;
+.fase-titulo {
+    color: #af1411;  /* Vermelho para os títulos de fases */
+    font-size: 1.8rem;
+    font-weight: bold;
     text-align: center;
 }
 
-table tr:last-child td {
-    border-bottom: none;
+.table {
+    width: 70%;  /* Ajusta a largura da tabela para não ocupar a página inteira */
+    margin: 0 auto 2rem auto;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    table-layout: fixed; /* Controla o tamanho das colunas */
+    border: none;
 }
 
-table tr th {
-    background-color: #007bff;  /* Cabeçalho azul claro */
-    color: white;  /* Texto branco no cabeçalho */
+table th, table td {
+    padding: 0.8rem;
+    text-align: center;
+    border: 1px solid #ddd;
+    word-wrap: break-word;  /* Garante que o texto não quebre a tabela */
+}
+
+table th {
+    background-color: #060a6c;  /* Azul escuro */
+    color: white;
     font-weight: bold;
 }
 
-table tr td {
-    background-color: #f9f9f9;  /* Cor de fundo das células */
+table td {
+    background-color: #f9f9f9;
 }
 
 table tr:nth-child(even) td {
-    background-color: #f1f1f1;  /* Alternando cores nas linhas para mais legibilidade */
+    background-color: #ffffff;
 }
 
 .centralizar {
@@ -62,67 +67,112 @@ table tr:nth-child(even) td {
 }
 
 .logo-time {
-    height: 50px;
-    display: block;
-    justify-content: center;
+    height: 40px;  /* Logo reduzido */
+    width: 40px;   /* Logo reduzido */
     object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);  /* Sombra suave nos logos */
+    border-radius: 50%;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .score {
-    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
 }
 
-/* Alteração no estilo dos gols, especialmente para "Aguardando Resultado" */
 .gols {
-    width: auto;  /* Removemos a largura fixa */
-    height: auto;  /* Removemos a altura fixa */
     display: inline-block;
-    padding: 0.4rem 0.8rem;  /* Adiciona um pouco de preenchimento ao redor do texto */
-    border: 1px solid #ddd;  /* Borda mais suave */
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    line-height: normal;
-    font-weight: bold;
-    color: #333;
     background-color: #fff;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);  /* Sombra suave para destacar */
-    min-width: 70px;  /* Um tamanho mínimo para o quadrado */
-    text-align: center;
-    font-size: 14px;  /* Fonte legível */
+    color: #333;
 }
 
-/* Estilo específico para "Aguardando Resultado" */
 .gols.aguardando {
-    background-color: #f0f0f0;  /* Fundo leve */
-    color: #999;  /* Cor de texto suave para indicar que é algo temporário */
-    font-size: 14px;
-    font-weight: normal;  /* Peso da fonte normal para não dar destaque */
+    background-color: #f0f0f0;
+    color: #999;
 }
 
-.gols:hover {
-    background-color: #f0f0f0;  /* Efeito de hover mais suave */
+.actions {
+    margin-left: 10px;
 }
 
-a {
-    color: #007bff;
-    text-decoration: none;
+.actions a {
+    color: #fff;
+    background-color: #007bff; /* Azul vibrante para o botão */
+    padding: 0.6rem 1rem; /* Tamanho agradável e confortável */
+    border-radius: 5px; /* Bordas arredondadas para suavizar o visual */
     font-weight: bold;
-    transition: color 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease; /* Transição suave para o efeito hover */
 }
 
-a:hover {
-    color: #0056b3;
-    text-decoration: underline;  /* Efeito de sublinhado ao passar o mouse */
+.actions a:hover {
+    background-color: #0056b3; /* Azul mais escuro no hover */
+    transform: scale(1.05); /* Efeito de aumento para dar interatividade */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Sombra mais forte no hover */
 }
 
-/* Adicionando responsividade */
+.actions a:active {
+    transform: scale(1); /* Retorna ao tamanho original quando clicado */
+    box-shadow: none; /* Remove a sombra ao clicar */
+}
+
+/* Cabeçalho fixo com título centralizado e botão Voltar à direita */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    text-align: center;  /* Centraliza o conteúdo do cabeçalho */
+}
+
+.site-header h1 {
+    font-size: 2rem;
+    color: #201f57;
+    margin: 0;
+    flex-grow: 1; /* Permite que o título ocupe todo o espaço disponível e fique centralizado */
+}
+
+.voltar {
+    background-color: #af1411; /* Vermelho para o botão Voltar */
+    color: #fff;
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.voltar:hover {
+    background-color: #c13d34;
+}
+
+/* Ajustando o conteúdo para não ficar atrás do cabeçalho fixo */
+.container {
+    margin-top: 100px;  /* Espaço para o cabeçalho fixo */
+    padding: 30px;
+}
+
+/* Responsividade para telas pequenas */
 @media (max-width: 768px) {
-    table {
-        width: 100%;  /* Tabela ocupa toda a largura na tela menor */
+    .table {
+        width: 100%;
     }
 
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
+    }
+
+    table td, table th {
+        font-size: 14px;
     }
 }

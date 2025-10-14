@@ -1,0 +1,122 @@
+/* Fonte Poppins 400 Regular */
+body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;  /* Regular weight */
+}
+
+/* Cor de fundo clara */
+.bg-light {
+    background-color: #f9f9f9 !important;
+}
+
+/* Estilo de Card */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;  /* Cor de fundo branca */
+}
+
+.card-header {
+    background-color: #060a6c;  /* Azul escuro */
+    color: white;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #060a6c;  /* Azul escuro */
+    font-size: 18px;
+}
+
+/* Lista de jogadores */
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    font-size: 14px;
+}
+
+.list-group-item .badge {
+    font-size: 14px;
+}
+
+/* Hover nas linhas da lista */
+.list-group-item:hover {
+    background-color: #f8f9fa;  /* Fundo claro ao passar o mouse */
+}
+
+/* Estilização do logo do time */
+.card-header img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Estilização dos Botões */
+.btn-warning {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #af1411;  /* Vermelho */
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #c30d00;  /* Vermelho mais forte ao passar o mouse */
+}
+
+.btn-primary {
+    background-color: #060a6c;  /* Azul escuro */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #003366;  /* Azul mais escuro ao passar o mouse */
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 18px;
+}
+
+/* Título principal */
+h1.display-4 {
+    font-weight: 600;
+    color: #060a6c;  /* Azul escuro */
+}
+
+/* Para a parte do botão de voltar */
+.btn-primary {
+    background-color: #060a6c;  /* Azul escuro */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #003366;  /* Azul mais escuro ao passar o mouse */
+}
+
+/* Efeitos de Hover nos Botões */
+.btn-primary:hover {
+    opacity: 0.85;
+}
+
+/* Ajustes para o layout responsivo */
+@media (max-width: 768px) {
+    .card-header img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .card-title {
+        font-size: 16px;
+    }
+
+    .list-group-item {
+        font-size: 12px;
+    }
+}

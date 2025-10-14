@@ -25,11 +25,10 @@ body {
 
 /* Logo */
 .logo {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 3px solid #af1411; /* Vermelho */
-    object-fit: cover;
+    width: 180px;  /* Ajuste conforme necessário */
+    height: 180px; /* Ajuste conforme necessário */
+    border-radius: 0; /* Remove o círculo, deixando o logo quadrado */
+    object-fit: cover; /* Mantém o logo ajustado ao tamanho */
 }
 
 /* Cards do menu */

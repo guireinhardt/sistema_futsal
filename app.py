@@ -97,18 +97,63 @@ def standings():
 
 @app.route('/top_scorers')
 def top_scorers():
-    players = Player.query.order_by(Player.goals.desc()).all()
+    players = Player.query.order_by(Player.goals.desc()).limit(10).all()
     return render_template('top_scorers.html', players=players)
 
 
 @app.route('/players')
 def players():
-    all_players = Player.query.all()  # Obtém todos os jogadores do banco de dados
-    return render_template('players.html', players=all_players)
+    teams = Team.query.all()  # Consulta todos os times
+    for team in teams:
+        # Verifica se o nome contém caracteres especiais que precisam ser tratados
+        logo_filename = team.name.strip().replace(" ", "_").replace("-", "_").replace("&", "e").lower()
+        
+        # Se o nome não precisar de modificações, mantém ele sem underscore extra
+        if logo_filename.endswith('_'):
+            logo_filename = logo_filename[:-1]  # Remove o underscore final
+
+        team.logo_filename = logo_filename + '.jpg'  # Adiciona a extensão .jpg ao nome do arquivo
+
+    return render_template('players.html', teams=teams)
+
 @app.route('/matches')
 def matches():
-    all_matches = Match.query.all()  # Obtém todos os jogos do banco de dados
-    return render_template('matches.html', matches=all_matches)
+    # Verifica se todos os jogos da fase de grupos foram concluídos
+    all_matches_completed = check_all_matches_completed()
+
+    # Filtra os jogos por fase
+    group_stage_matches = Match.query.filter_by(phase='fase de grupos').all()
+    semi_finals = Match.query.filter_by(phase='semi-final').all()
+    final_match = Match.query.filter_by(phase='final').first()  # Apenas um jogo final
+
+    # Combina os jogos das fases para processar os logos
+    matches = group_stage_matches + semi_finals
+    if final_match:
+        matches.append(final_match)
+
+    # Função para formatar o nome do logo
+    def format_logo_filename(team_name):
+        # Formata o nome do time para o logo
+        logo_filename = team_name.strip().replace(" ", "_").replace("-", "_").replace("&", "e").lower()
+
+        # Remove o underscore final, se existir
+        if logo_filename.endswith('_'):
+            logo_filename = logo_filename[:-1]
+
+        return logo_filename + '.jpg'
+
+    # Processa os logos dos times
+    for match in matches:
+        for team in [match.team_a, match.team_b]:
+            team.logo_filename = format_logo_filename(team.name)
+
+    # Passa as variáveis para o template
+    return render_template('matches.html', 
+                           group_stage_matches=group_stage_matches,
+                           semi_finals=semi_finals,
+                           final_match=final_match,
+                           all_matches_completed=all_matches_completed)
+
 @app.route('/edit_player/<int:player_id>', methods=['GET', 'POST'])
 def edit_player(player_id):
     player = Player.query.get_or_404(player_id)
