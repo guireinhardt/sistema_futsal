@@ -4,59 +4,38 @@
   <meta charset="utf-8">
   <title>Editar Partida</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji'; margin: 24px; }
-    h1, h3 { margin: 0 0 12px; }
-    form { margin-top: 12px; }
-    table { border-collapse: collapse; margin-bottom: 16px; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 6px 8px; }
-    th { background: #f6f6f6; text-align: left; }
-    .cols { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
-    .col { flex: 1; min-width: 280px; }
-    .muted { color: #666; font-size: 14px; }
-    .actions { margin-top: 16px; display: flex; gap: 12px; }
-    .btn { padding: 8px 14px; border: 1px solid #ccc; background: #fff; border-radius: 8px; cursor: pointer; }
-    .btn-primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
-    ul.flash { padding: 0; list-style: none; margin: 0 0 12px; }
-    ul.flash li { background: #f8f9fa; border: 1px solid #e9ecef; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; }
-    label strong { font-size: 16px; }
-    input[type="number"] { width: 80px; }
-  </style>
+  <link rel="stylesheet" href="../static/css/edit_match.css">
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul class="flash">
-      {% for category, message in messages %}
-        <li><strong>{{ category.title() }}:</strong> {{ message }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
 
-  <h1>Editar: {{ match.team_a.name }} x {{ match.team_b.name }}</h1>
+  <!-- Cabeçalho fixo com botão "Voltar" à direita -->
+  <header class="header">
+    <h1>Editar: {{ match.team_a.name }} x {{ match.team_b.name }}</h1>
+    <a href="{{ url_for('matches') }}" class="btn voltar-btn">Voltar</a>
+  </header>
 
-  <form method="POST">
+  <form method="POST" class="match-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <!-- Placar -->
-    <p>
-      <label><strong>{{ match.team_a.name }}</strong></label><br>
-      <label>Placar {{ match.team_a.name }}:
-        <input type="number" name="score_a" min="0" value="{{ match.score_a or 0 }}" required>
-      </label>
-    </p>
+    <div class="cols">
+      <div class="col">
+        <label><strong>{{ match.team_a.name }}</strong></label><br>
+        <label>Placar {{ match.team_a.name }}:
+          <input type="number" name="score_a" min="0" value="{{ match.score_a or 0 }}" required>
+        </label>
+      </div>
 
-    <p>
-      <label><strong>{{ match.team_b.name }}</strong></label><br>
-      <label>Placar {{ match.team_b.name }}:
-        <input type="number" name="score_b" min="0" value="{{ match.score_b or 0 }}" required>
-      </label>
-    </p>
+      <div class="col">
+        <label><strong>{{ match.team_b.name }}</strong></label><br>
+        <label>Placar {{ match.team_b.name }}:
+          <input type="number" name="score_b" min="0" value="{{ match.score_b or 0 }}" required>
+        </label>
+      </div>
+    </div>
 
     <!-- Estatísticas dos jogadores -->
     <div class="cols">
-      <!-- Time A -->
       <div class="col">
         <h3>Estatísticas — {{ match.team_a.name }}</h3>
         <table>
@@ -83,7 +62,6 @@
         </table>
       </div>
 
-      <!-- Time B -->
       <div class="col">
         <h3>Estatísticas — {{ match.team_b.name }}</h3>
         <table>
@@ -113,8 +91,8 @@
 
     <div class="actions">
       <input type="submit" class="btn btn-primary" value="Salvar">
-      <a class="btn" href="{{ url_for('matches') }}">Voltar</a>
     </div>
   </form>
+
 </body>
 </html>
