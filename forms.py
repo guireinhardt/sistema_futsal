@@ -31,5 +31,5 @@ class PlayerForm(FlaskForm):
         ('pivo', 'Pivô')
     ], validators=[DataRequired()])  # Adicionando validadores para o campo de posição
     goals = IntegerField('Gols', default=0)  # Adicionando o campo 'goals' corretamente
-    submit = SubmitField('Adicionar Jogador')
+    submit = SubmitField('Editar Jogador')
 
