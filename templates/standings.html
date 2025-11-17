@@ -45,9 +45,11 @@
                     <tr>
                         <td>{{ data.position }}</td>
                         <td>
-                            <img class='logo-time' src="{{ url_for('static', filename='logos/' + data.team|replace(' ', '_') + '.png') }}" 
-                                 alt="{{ data.team }} logo">
+                            <img class="logo-time"
+                                src="{{ url_for('static', filename='logos/' ~ data.logo_filename) }}"
+                                alt="{{ data.team }} logo">
                         </td>
+
                         <td>{{ data.team }}</td>
                         <td>{{ data.points }}</td>
                         <td>{{ data.matches }}</td>

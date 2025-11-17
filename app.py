@@ -5,6 +5,7 @@ from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from services.standingsService import calculate_standings,check_all_matches_completed,generate_semi_finals,save_semi_finals
+import unidecode
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'terca-f&era-cup'
@@ -64,7 +65,8 @@ def add_player():
             name=form.name.data,
             team_id=form.team_id.data,
             position=form.position.data,
-            goals=form.goals.data  # Armazena a posição selecionada
+            goals=form.goals.data,  # Armazena a quantidade de gols
+            shirt_number=form.shirt_number.data  # Agora estamos passando o número da camiseta
         )
         db.session.add(player)
         db.session.commit()
@@ -74,7 +76,6 @@ def add_player():
     return render_template('add_player.html', form=form)
 
 
-
 @app.route('/standings')
 def standings():
     # Verifica se todos os jogos da fase de grupos foram finalizados
@@ -82,6 +83,11 @@ def standings():
 
     # Calcula a classificação geral
     standings_data = calculate_standings()
+
+    # Adiciona o logo em cada time
+    for data in standings_data:
+        team_name = data["team"]  # ou data.team se for objeto
+        data["logo_filename"] = build_logo_filename(team_name)  # Aplica a função para gerar o nome correto do logo
 
     # Buscar partidas da semi-final e final do banco
     semi_finals = Match.query.filter_by(phase='semi-final').all() if all_matches_completed else []
@@ -94,6 +100,8 @@ def standings():
         final_matches=final_matches,
         all_matches_completed=all_matches_completed
     )
+
+
 
 @app.route('/top_scorers')
 def top_scorers():
@@ -304,5 +312,24 @@ def generate_semi_finals():
 
 
 
+def build_logo_filename(team_name: str) -> str:
+    # Normaliza o nome do time: transforma em minúsculas, substitui espaços por '_', e remove acentos
+    logo_filename = (
+        team_name
+        .strip()  # Remove espaços extras no começo/fim
+        .replace(" ", "_")  # Substitui espaços por _
+        .replace("-", "_")  # Substitui hífens por _
+        .replace("&", "e")  # Substitui o "&" por "e"
+        .lower()  # Coloca tudo em minúsculo
+    )
+    
+    # Remove acentos de caracteres
+    logo_filename = unidecode.unidecode(logo_filename)  # remove acentos, tipo 'ç', 'á', 'é', etc.
+
+    # Se o nome acabar com um "_" extra, remove
+    if logo_filename.endswith('_'):
+        logo_filename = logo_filename[:-1]
+    
+    return logo_filename + '.jpg'  # ou '.png', conforme necessário
 if __name__ == '__main__':
     app.run(debug=True)

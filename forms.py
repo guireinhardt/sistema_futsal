@@ -31,5 +31,13 @@ class PlayerForm(FlaskForm):
         ('pivo', 'Pivô')
     ], validators=[DataRequired()])  # Adicionando validadores para o campo de posição
     goals = IntegerField('Gols', default=0)  # Adicionando o campo 'goals' corretamente
+<<<<<<< Updated upstream
     submit = SubmitField('Editar Jogador')
 
+=======
+    
+    # Adicionando o campo para número da camiseta
+    shirt_number = IntegerField('Número da Camisa', validators=[DataRequired()])  # O campo será obrigatório
+    
+    submit = SubmitField('Adicionar Jogador')
+>>>>>>> Stashed changes

@@ -28,6 +28,12 @@
                 {{ form.name(class="form-control", placeholder="Nome do Jogador") }}
             </div>
 
+            <!-- Número da Camisa -->
+            <div class="mb-4">
+                <label for="shirt_number" class="form-label">{{ form.shirt_number.label }}</label>
+                {{ form.shirt_number(class="form-control", placeholder="Ex: 10") }}
+            </div>
+
             <!-- Seleção do time -->
             <div class="mb-4">
                 <label for="team_id" class="form-label">{{ form.team_id.label }}</label>

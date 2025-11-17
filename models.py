@@ -42,12 +42,15 @@ class Player(db.Model):
     
     position = db.Column(db.String(30), nullable=False)
     goals = db.Column(db.Integer, default=0)
+    
+    # Adicionando número da camiseta
+    shirt_number = db.Column(db.Integer, nullable=False)  # Número da camiseta, altere para nullable=True se desejar que seja opcional
 
     # Relacionamento com o time, agora com back_populates
     team = db.relationship('Team', back_populates='players')  # 'team_ref' estava errado antes, 'backref' não é necessário se 'back_populates' for usado
 
     def __repr__(self):
-        return f'<Player {self.name}>'
+        return f'<Player {self.name}, Shirt Number: {self.shirt_number}>'
 
 class Goal(db.Model):
     __tablename__ = 'goal'
