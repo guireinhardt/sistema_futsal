@@ -2,7 +2,6 @@
 
 Sistema web completo para organizar campeonatos de futsal — multi-campeonato, com fase de grupos, semi-finais geradas automaticamente, grande final e ranking de artilheiros.
 
-![Tests](https://github.com/guireinhardt/sistema_futsal/actions/workflows/tests.yml/badge.svg)
 
 ---
 
