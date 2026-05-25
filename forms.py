@@ -1,38 +1,58 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, IntegerField, SubmitField,BooleanField
-from wtforms.validators import DataRequired
+from wtforms import StringField, SelectField, IntegerField, SubmitField, FileField
+from wtforms.validators import DataRequired, NumberRange, Optional
+from flask_wtf.file import FileAllowed
+
+
+class TournamentForm(FlaskForm):
+    name = StringField("Nome do campeonato", validators=[DataRequired()])
+    edition = StringField("Edição (ex: 2025, 1ª edição)", validators=[Optional()])
+    logo = FileField(
+        "Logo do campeonato (JPG ou PNG, máx. 2MB)",
+        validators=[FileAllowed(["jpg", "jpeg", "png"], "Apenas JPG ou PNG.")],
+    )
+    submit = SubmitField("Criar campeonato")
+
 
 class TeamForm(FlaskForm):
-    name = StringField('Nome do Time', validators=[DataRequired()])
-    submit = SubmitField('Adicionar Time')
-
+    name = StringField("Nome do time", validators=[DataRequired()])
+    logo = FileField(
+        "Logo do time (JPG ou PNG, máx. 2MB)",
+        validators=[FileAllowed(["jpg", "jpeg", "png"], "Apenas JPG ou PNG.")],
+    )
+    submit = SubmitField("Adicionar time")
 
 
 class MatchForm(FlaskForm):
-    team_a_id = SelectField('Time A', coerce=int, validators=[DataRequired()])
-    team_b_id = SelectField('Time B', coerce=int, validators=[DataRequired()])
-    
-    # Novo campo de fase
-    phase = SelectField('Fase da Partida', choices=[
-        ('fase de grupos', 'Fase de Grupos'),
-        ('semi-final', 'Semi-final'),
-        ('final', 'Final')
-    ], validators=[DataRequired()])
+    team_a_id = SelectField("Time A", coerce=int, validators=[DataRequired()])
+    team_b_id = SelectField("Time B", coerce=int, validators=[DataRequired()])
+    phase = SelectField(
+        "Fase",
+        choices=[
+            ("fase de grupos", "Fase de Grupos"),
+            ("semi-final", "Semi-final"),
+            ("final", "Final"),
+        ],
+        validators=[DataRequired()],
+    )
+    submit = SubmitField("Adicionar partida")
 
-    submit = SubmitField('Adicionar Partida')
 
 class PlayerForm(FlaskForm):
-    name = StringField('Nome', validators=[DataRequired()])
-    team_id = SelectField('Time', coerce=int, validators=[DataRequired()])
-    position = SelectField('Posição', choices=[
-        ('goleiro', 'Goleiro'),
-        ('fixo', 'Fixo'),
-        ('ala', 'Ala'),
-        ('pivo', 'Pivô')
-    ], validators=[DataRequired()])  # Adicionando validadores para o campo de posição
-    goals = IntegerField('Gols', default=0)  # Adicionando o campo 'goals' corretamente
-    
-    # Adicionando o campo para número da camiseta
-    shirt_number = IntegerField('Número da Camisa', validators=[DataRequired()])  # O campo será obrigatório
-    
-    submit = SubmitField('Adicionar Jogador')
+    name = StringField("Nome", validators=[DataRequired()])
+    team_id = SelectField("Time", coerce=int, validators=[DataRequired()])
+    position = SelectField(
+        "Posição",
+        choices=[
+            ("goleiro", "Goleiro"),
+            ("fixo", "Fixo"),
+            ("ala", "Ala"),
+            ("pivo", "Pivô"),
+        ],
+        validators=[DataRequired()],
+    )
+    shirt_number = IntegerField(
+        "Número da camisa",
+        validators=[DataRequired(), NumberRange(min=1, max=99)],
+    )
+    submit = SubmitField("Salvar jogador")

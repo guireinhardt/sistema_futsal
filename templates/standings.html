@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabela de Classificação</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/css/classificacao.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/classificacao.css') }}">
 </head>
 <body>
 
     <!-- Header -->
     <header class="site-header text-center py-4">
-        <img src="../static/logos/logo-tf.jpg" alt="Logo Futsal" class="logo mb-3">
+        {% if tournament_logo %}
+            <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="tournament-logo">
+        {% endif %}
         <h1 class="titulo">Tabela de Classificação</h1>
     </header>
 
     <!-- Mensagem de Aguardando Fase de Grupos -->
     {% if not all_matches_completed %}
         <p class="alert alert-warning text-center">Aguardando todos os jogos da fase de grupos serem finalizados para exibir as semi-finais.</p>
-    {% else %}
     {% endif %}
 
     <!-- Tabela de Classificação -->
@@ -49,7 +50,6 @@
                                 src="{{ url_for('static', filename='logos/' ~ data.logo_filename) }}"
                                 alt="{{ data.team }} logo">
                         </td>
-
                         <td>{{ data.team }}</td>
                         <td>{{ data.points }}</td>
                         <td>{{ data.matches }}</td>
@@ -69,71 +69,71 @@
     <!-- Siglas -->
     <p class="siglas text-center">SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols</p>
 
-<!-- Tabela de Semi-Finais -->
-{% if semi_finals %}
-<section id="semi-finals" class="container my-5">
-    <h2 class="semi-final-titulo">Semi-Finais</h2>
-    <table class="tabelaClassificacao semi-final">
-        <thead>
-            <tr>
-                <th>Jogo</th>
-                <th>Mandante</th>
-                <th>Visitante</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for match in semi_finals %}
-            <tr>
-                <td>Semi-final</td>
-                <td>{{ match.team_a.name }}</td>
-                <td>{{ match.team_b.name }}</td>
-                <td>
-                    <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
-                        <i class="fas fa-edit"></i> Editar
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
-{% else %}
-<p class="alert alert-info text-center">As semi-finais serão exibidas após a conclusão da fase de grupos.</p>
-{% endif %}
+    <!-- Tabela de Semi-Finais -->
+    {% if semi_finals %}
+    <section id="semi-finals" class="container my-5">
+        <h2 class="semi-final-titulo">Semi-Finais</h2>
+        <table class="tabelaClassificacao semi-final">
+            <thead>
+                <tr>
+                    <th>Jogo</th>
+                    <th>Mandante</th>
+                    <th>Visitante</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in semi_finals %}
+                <tr>
+                    <td>Semi-final</td>
+                    <td>{{ match.team_a.name }}</td>
+                    <td>{{ match.team_b.name }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
+                            ✏️ Editar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% else %}
+    <p class="alert alert-info text-center">As semi-finais serão exibidas após a conclusão da fase de grupos.</p>
+    {% endif %}
 
-<!-- Tabela da Final -->
-{% if final_matches %}
-<section id="final" class="container my-5">
-    <h2 class="final-titulo">Final</h2>
-    <table class="tabelaClassificacao final">
-        <thead>
-            <tr>
-                <th>Jogo</th>
-                <th>Mandante</th>
-                <th>Visitante</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for match in final_matches %}
-            <tr>
-                <td>Final</td>
-                <td>{{ match.team_a.name }}</td>
-                <td>{{ match.team_b.name }}</td>
-                <td>
-                    <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
-                        <i class="fas fa-edit"></i> Editar
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
-{% else %}
-<p class="alert alert-info text-center">A final ainda não foi definida.</p>
-{% endif %}
+    <!-- Tabela da Final -->
+    {% if final_match %}
+    <section id="final" class="container my-5">
+        <h2 class="final-titulo">Final</h2>
+        <table class="tabelaClassificacao final">
+            <thead>
+                <tr>
+                    <th>Jogo</th>
+                    <th>Mandante</th>
+                    <th>Visitante</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in final_match %}
+                <tr>
+                    <td>Final</td>
+                    <td>{{ match.team_a.name }}</td>
+                    <td>{{ match.team_b.name }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
+                            ✏️ Editar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% else %}
+    <p class="alert alert-info text-center">A final ainda não foi definida.</p>
+    {% endif %}
 
     <footer class="site-footer text-center py-3">
         <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar</a>

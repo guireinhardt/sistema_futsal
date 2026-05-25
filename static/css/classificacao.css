@@ -1,7 +1,7 @@
 /* Fonte Poppins */
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #ffffff; /* Cor de fundo limpa e sem cinza */
+    background-color: #ffffff;
     color: #201f57;
     display: flex;
     flex-direction: column;
@@ -11,60 +11,58 @@ body {
 
 /* Cabeçalho */
 .site-header {
-    background-color: #ffffff;  /* Cor do fundo do cabeçalho agora é branco */
+    background-color: #ffffff;
     color: #201f57;
     text-align: center;
     padding: 20px;
-    border-bottom: 2px solid #ddd; /* Se você quiser um border mais leve, você pode ajustar a cor */
+    border-bottom: 2px solid #ddd;
 }
 
 .site-header h1 {
     font-size: 2rem;
     font-weight: 500;
-    margin-top: 20px;
-    color: #060a6c;  /* Azul escuro */
+    margin-top: 12px;
+    color: #060a6c;
 }
 
-.logo {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 3px solid #af1411;
-    object-fit: cover;
+/* Logo do campeonato no header — tamanho controlado */
+.tournament-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;  /* contain preserva proporção sem cortar */
+    display: block;
+    margin: 0 auto;
 }
 
 /* Mensagem de Aguardando Fase de Grupos */
 .alert {
-    background-color: transparent; /* Remove o fundo */
-    color: #ff7f00;  /* Cor laranja para o texto */
+    background-color: transparent;
+    color: #ff7f00;
     padding: 10px;
     border-radius: 5px;
     text-align: center;
     font-size: 16px;
     margin-top: 20px;
-    width: 100%; /* Garante que a mensagem ocupe toda a largura disponível */
-    box-sizing: border-box; /* Para não ultrapassar as margens */
+    width: 100%;
+    box-sizing: border-box;
 }
-
-
 
 /* Tabela de Classificação */
 .table-container {
-    width: 70%; /* Reduz a largura da tabela para 70% da tela */
-    margin: 0 auto; /* Centraliza a tabela */
+    width: 70%;
+    margin: 0 auto;
     margin-top: 30px;
 }
 
 .tabelaClassificacao {
     width: 100%;
     border-collapse: collapse;
-    background-color: #ffffff; /* Fundo mais suave */
+    background-color: #ffffff;
     color: #201f57;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1); /* Suaviza o contorno */
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
-
 
 .tabelaClassificacao th {
     background-color: #060a6c;
@@ -82,20 +80,20 @@ body {
 }
 
 .tabelaClassificacao tr:nth-child(odd) {
-    background-color: #ffffff; /* Tabela com fundo branco */
+    background-color: #ffffff;
 }
 
 .tabelaClassificacao tr:nth-child(even) {
-    background-color: #ffffff; /* Tabela com fundo branco */
+    background-color: #ffffff;
 }
 
 /* Cores dos Top 4 */
 .tabelaClassificacao tr:nth-child(-n+4) td:first-child {
-    background-color: #228822; /* Verde */
+    background-color: #228822;
     color: white;
 }
 
-/* Estilo dos logos dos times */
+/* Logos dos times na tabela */
 .logo-time {
     width: 40px;
     height: 40px;
@@ -103,26 +101,26 @@ body {
     border-radius: 50%;
 }
 
-/* Estilo para Semi-Final */
+/* Semi-Final */
 .semi-final-titulo {
     text-align: center;
     font-size: 1.8rem;
     font-weight: bold;
-    color: #007bff;  /* Cor azul */
+    color: #007bff;
     margin-top: 40px;
 }
 
-/* Estilo para a Final */
+/* Final */
 .final-titulo {
     text-align: center;
     font-size: 2rem;
     font-weight: bold;
-    color: #28a745;  /* Cor verde */
+    color: #28a745;
     margin-top: 40px;
 }
 
 footer {
-    background-color: #ffffff; /* Fundo branco para o footer */
+    background-color: #ffffff;
     color: #201f57;
     padding: 20px;
     text-align: center;
@@ -154,4 +152,26 @@ footer {
     color: #555555;
     margin-top: 20px;
     font-family: 'Poppins', sans-serif;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .table-container {
+        width: 100%;
+    }
+
+    .tournament-logo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .site-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .tabelaClassificacao th,
+    .tabelaClassificacao td {
+        font-size: 13px;
+        padding: 8px 6px;
+    }
 }

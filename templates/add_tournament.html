@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo Campeonato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/add_tournament.css') }}">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>⚽ Sistema de Campeonato</h1>
+      {% if active_tournament %}
+        <p class="header-subtitle">Campeonato ativo: <strong>{{ active_tournament.display_name }}</strong></p>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Conteúdo principal -->
+  <main class="main-content">
+
+    <div class="page-card">
+
+      <div class="page-card__header">
+        <div class="page-card__icon">🏆</div>
+        <div>
+          <h2 class="page-card__title">Novo campeonato</h2>
+          <p class="page-card__subtitle">Preencha os dados abaixo. Você pode criar quantos campeonatos quiser e alternar entre eles a qualquer momento.</p>
+        </div>
+      </div>
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-list">
+            {% for category, message in messages %}
+              <div class="flash flash--{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" enctype="multipart/form-data" class="tournament-form" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          <label class="form-label" for="name">Nome do campeonato <span class="required">*</span></label>
+          <input
+            class="form-input {% if form.name.errors %}form-input--error{% endif %}"
+            type="text"
+            id="name"
+            name="name"
+            value="{{ form.name.data or '' }}"
+            placeholder="Ex: Copa Terça-Feira"
+            autofocus
+          >
+          {% if form.name.errors %}
+            <span class="form-error">{{ form.name.errors[0] }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edition">Edição <span class="optional">(opcional)</span></label>
+          <input
+            class="form-input {% if form.edition.errors %}form-input--error{% endif %}"
+            type="text"
+            id="edition"
+            name="edition"
+            value="{{ form.edition.data or '' }}"
+            placeholder="Ex: 2025  ou  1ª edição"
+          >
+          <span class="form-hint">Deixe em branco se não precisar diferenciar por edição.</span>
+          {% if form.edition.errors %}
+            <span class="form-error">{{ form.edition.errors[0] }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="logo">Logo do campeonato <span class="optional">(opcional)</span></label>
+          <input
+            class="form-input"
+            type="file"
+            id="logo"
+            name="logo"
+            accept=".jpg,.jpeg,.png"
+          >
+          <span class="form-hint">JPG ou PNG, máximo 2 MB. Aparecerá no topo de todas as páginas.</span>
+          {% if form.logo.errors %}
+            <span class="form-error">{{ form.logo.errors[0] }}</span>
+          {% endif %}
+          <div id="preview-wrap" class="mt-2" style="display:none;">
+            <img id="logo-preview" src="#" alt="Preview"
+                 style="max-height:80px;max-width:80px;border-radius:8px;border:1px solid #dee2e6;">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">Criar campeonato</button>
+          <a href="{{ url_for('index') }}" class="btn btn--outline">Cancelar</a>
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- Lista de campeonatos existentes -->
+    {% if tournaments %}
+    <div class="existing-section">
+      <h3 class="existing-section__title">Campeonatos existentes</h3>
+      <div class="tournament-list">
+        {% for t in tournaments %}
+        <div class="tournament-item {% if active_tournament and active_tournament.id == t.id %}tournament-item--active{% endif %}">
+          <div class="tournament-item__info">
+            <span class="tournament-item__name">{{ t.display_name }}</span>
+            <span class="tournament-item__status tournament-item__status--{{ t.status }}">
+              {{ 'Em andamento' if t.status == 'em_andamento' else 'Finalizado' }}
+            </span>
+          </div>
+          <div class="tournament-item__actions">
+            {% if active_tournament and active_tournament.id == t.id %}
+              <span class="badge-active">✓ Ativo</span>
+            {% else %}
+              <a href="{{ url_for('select_tournament', tid=t.id) }}" class="btn btn--sm btn--outline">Selecionar</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>Sistema de Campeonato de Futsal</p>
+  </footer>
+
+  <script>
+    // Auto-dismiss flash messages após 3.5s
+    setTimeout(() => {
+      document.querySelectorAll('.flash').forEach(el => {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+      });
+    }, 3500);
+  </script>
+
+  <script>
+    document.getElementById('logo').addEventListener('change', function () {
+      const file = this.files[0];
+      const wrap = document.getElementById('preview-wrap');
+      const img  = document.getElementById('logo-preview');
+      if (!file) { wrap.style.display = 'none'; return; }
+      if (file.size > 2 * 1024 * 1024) {
+        wrap.style.display = 'none';
+        alert('Arquivo muito grande. Máximo: 2 MB.');
+        this.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => { img.src = e.target.result; wrap.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>

@@ -18,8 +18,10 @@
 
   <!-- Header -->
   <header class="site-header text-center py-5">
-    <img src="../static/logos/logo2025.png" alt="Logo Futsal" class="logo mb-3">
-    <h1>Super Copa dos Campeões Terça Féra</h1>
+    {% if tournament_logo %}
+            <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="logo mb-3">
+          {% endif %}
+    <h1>{% if active_tournament %}{{ active_tournament.display_name }}{% else %}Sistema de Campeonato{% endif %}</h1>
   </header>
 
   <!-- Conteúdo -->
@@ -91,6 +93,16 @@
           <div class="card h-100 shadow-sm">
             <div class="card-body text-center">
               <h5 class="card-title">Lista de Jogos</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('add_tournament') }}" class="menu-card text-decoration-none">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+              <h5 class="card-title">Campeonatos</h5>
             </div>
           </div>
         </a>

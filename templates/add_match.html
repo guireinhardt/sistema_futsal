@@ -21,7 +21,9 @@
     <div class="form-card">
         <!-- Logo pequeno dentro do formulário -->
         <div class="text-center mb-4">
-            <img src="../static/logos/logo-tf.jpg" alt="Logo Futsal" class="form-logo mb-3">
+            {% if tournament_logo %}
+            <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="form-logo mb-3">
+          {% endif %}
         </div>
 
         <!-- Título do formulário -->

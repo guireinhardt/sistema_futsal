@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Partida</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f8f9fa; color: #201f57; }
+        .site-header { background-color: #060a6c; color: #fff; text-align: center; padding: 1.5rem 1rem; }
+        .site-header h1 { font-size: 1.8rem; font-weight: 500; margin: 0; }
+        .placar-box { background: #060a6c; color: #fff; border-radius: 12px; padding: 1.5rem 2rem; text-align: center; }
+        .placar-box .times { font-size: 1.1rem; font-weight: 500; }
+        .placar-box .placar { font-size: 3rem; font-weight: 600; letter-spacing: 4px; }
+        .placar-box .fase { font-size: 0.85rem; opacity: 0.75; margin-top: 0.25rem; }
+        .placar-box .vencedor { background: #af1411; border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.9rem; display: inline-block; margin-top: 0.75rem; }
+        .stats-card { border: 2px solid #201f57; border-radius: 12px; }
+        .stats-card .card-header { background: #201f57; color: #fff; font-weight: 500; border-radius: 8px 8px 0 0; }
+        .site-footer { background-color: #060a6c; color: #fff; text-align: center; padding: 1rem; font-style: italic; font-size: 0.875rem; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <h1>Detalhes da Partida</h1>
+        {% if active_tournament %}
+            <p style="margin:0.25rem 0 0; font-size:0.85rem; opacity:0.8;">{{ active_tournament.display_name }}</p>
+        {% endif %}
+    </header>
+
+    <div class="container py-4" style="max-width:760px;">
+
+        <!-- Placar -->
+        <div class="placar-box mb-4">
+            <div class="fase">{{ match.phase | title }}</div>
+            <div class="times mt-2">
+                {{ match.team_a.name }}
+                <span style="opacity:0.6; margin: 0 0.5rem;">×</span>
+                {{ match.team_b.name }}
+            </div>
+            {% if match.is_finished %}
+                <div class="placar">{{ match.score_a }} — {{ match.score_b }}</div>
+                {% if match.winner %}
+                    <div class="vencedor">🏅 Vencedor: {{ match.winner.name }}</div>
+                {% else %}
+                    <div style="margin-top:0.5rem; font-size:0.9rem; opacity:0.8;">Empate</div>
+                {% endif %}
+            {% else %}
+                <div class="placar" style="opacity:0.5;">— vs —</div>
+                <div style="font-size:0.85rem; opacity:0.7; margin-top:0.5rem;">Partida ainda não realizada</div>
+            {% endif %}
+        </div>
+
+        <!-- Estatísticas -->
+        {% if stats_a or stats_b %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card stats-card h-100">
+                    <div class="card-header">{{ match.team_a.name }}</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>Jogador</th><th>⚽</th><th>🤝</th><th>🧤</th></tr></thead>
+                            <tbody>
+                                {% for stat in stats_a %}
+                                <tr>
+                                    <td>{{ stat.player_ref.name }} <small class="text-muted">#{{ stat.player_ref.shirt_number }}</small></td>
+                                    <td>{{ stat.goals }}</td>
+                                    <td>{{ stat.assists }}</td>
+                                    <td>{{ stat.saves }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card stats-card h-100">
+                    <div class="card-header">{{ match.team_b.name }}</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>Jogador</th><th>⚽</th><th>🤝</th><th>🧤</th></tr></thead>
+                            <tbody>
+                                {% for stat in stats_b %}
+                                <tr>
+                                    <td>{{ stat.player_ref.name }} <small class="text-muted">#{{ stat.player_ref.shirt_number }}</small></td>
+                                    <td>{{ stat.goals }}</td>
+                                    <td>{{ stat.assists }}</td>
+                                    <td>{{ stat.saves }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            <p class="text-muted text-center mt-3">Nenhuma estatística registrada ainda para esta partida.</p>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('matches') }}" class="btn btn-outline-secondary me-2">← Voltar às partidas</a>
+            <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-primary">✏️ Editar placar</a>
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
+        &copy; 2025 Terça Féra Futsal. Todos os direitos reservados.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

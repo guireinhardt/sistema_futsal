@@ -1,0 +1,347 @@
+/* ── Base (igual ao index.css) ─────────────────────────────────────── */
+body {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  background-color: #ffffff;
+  color: #201f57;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.site-header {
+  background-color: #060a6c;
+  color: #ffffff;
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.site-header h1 {
+  font-size: 2.5rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+/* ── Main ──────────────────────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  gap: 2rem;
+}
+
+/* ── Card principal ────────────────────────────────────────────────── */
+.page-card {
+  background-color: #ffffff;
+  border: 2px solid #201f57;
+  border-radius: 15px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 520px;
+}
+
+.page-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.page-card__icon {
+  font-size: 2.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.page-card__title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #060a6c;
+  margin: 0 0 0.3rem;
+}
+
+.page-card__subtitle {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Flash messages ────────────────────────────────────────────────── */
+.flash-list {
+  margin-bottom: 1.25rem;
+}
+
+.flash {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.flash--success {
+  background-color: #e6f4ea;
+  color: #1e6b35;
+  border: 1px solid #b2d8be;
+}
+
+.flash--danger,
+.flash--error {
+  background-color: #fdecea;
+  color: #a51c1c;
+  border: 1px solid #f5b8b8;
+}
+
+.flash--warning {
+  background-color: #fff8e1;
+  color: #7a5800;
+  border: 1px solid #ffe082;
+}
+
+/* ── Formulário ────────────────────────────────────────────────────── */
+.tournament-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #201f57;
+}
+
+.required {
+  color: #af1411;
+}
+
+.optional {
+  font-weight: 400;
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.form-input {
+  padding: 0.65rem 0.9rem;
+  border: 2px solid #201f57;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  color: #201f57;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  border-color: #af1411;
+  box-shadow: 0 0 0 3px rgba(175, 20, 17, 0.12);
+}
+
+.form-input--error {
+  border-color: #af1411;
+}
+
+.form-error {
+  font-size: 0.8rem;
+  color: #af1411;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+/* ── Botões ────────────────────────────────────────────────────────── */
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  border: 2px solid transparent;
+}
+
+.btn--primary {
+  background-color: #060a6c;
+  color: #ffffff;
+  border-color: #060a6c;
+}
+
+.btn--primary:hover {
+  background-color: #0d12a0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(6, 10, 108, 0.3);
+}
+
+.btn--primary:active {
+  transform: translateY(0);
+}
+
+.btn--outline {
+  background-color: transparent;
+  color: #201f57;
+  border-color: #201f57;
+}
+
+.btn--outline:hover {
+  background-color: #f0f0f8;
+  border-color: #af1411;
+  color: #af1411;
+}
+
+.btn--sm {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+/* ── Seção de campeonatos existentes ───────────────────────────────── */
+.existing-section {
+  width: 100%;
+  max-width: 520px;
+}
+
+.existing-section__title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #201f57;
+  margin: 0 0 0.75rem;
+}
+
+.tournament-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tournament-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background-color: #ffffff;
+  border: 2px solid #201f57;
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.tournament-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #060a6c;
+}
+
+.tournament-item--active {
+  border-color: #060a6c;
+  background-color: #f0f1fc;
+}
+
+.tournament-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tournament-item__name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #201f57;
+}
+
+.tournament-item__status {
+  font-size: 0.75rem;
+}
+
+.tournament-item__status--em_andamento {
+  color: #1e6b35;
+}
+
+.tournament-item__status--finalizado {
+  color: #888;
+}
+
+.tournament-item__actions {
+  flex-shrink: 0;
+}
+
+.badge-active {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #060a6c;
+  background-color: #dde0f7;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────── */
+.site-footer {
+  background-color: #060a6c;
+  color: #ffffff;
+  font-weight: 400;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+/* ── Responsividade ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .site-header h1 {
+    font-size: 2rem;
+  }
+
+  .page-card {
+    padding: 1.5rem;
+  }
+
+  .page-card__title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .page-card {
+    padding: 1.25rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

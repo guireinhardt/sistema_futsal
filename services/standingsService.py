@@ -1,139 +1,145 @@
-# services/standingsService.py
+from models import db, Match, Team
 
-from models import db,Match, Team
-from sqlalchemy import func
 
-def calculate_standings():
-    """Calcula a classificação geral dos times"""
-    teams = Team.query.all()  # Obtém todos os times do banco de dados
-    standings_data = []
+def calculate_standings(tournament_id):
+    """
+    Calcula a classificação da fase de grupos para um campeonato específico.
+    Retorna lista ordenada por: pontos → saldo de gols → gols pró.
+    """
+    teams = Team.query.filter_by(tournament_id=tournament_id).all()
+    standings = []
 
     for team in teams:
-        # Obtenha todas as partidas em que o time participou
-        matches_as_team_a = Match.query.filter_by(team_a_id=team.id).all()
-        matches_as_team_b = Match.query.filter_by(team_b_id=team.id).all()
+        matches = Match.query.filter(
+            Match.tournament_id == tournament_id,
+            Match.phase == "fase de grupos",
+            db.or_(Match.team_a_id == team.id, Match.team_b_id == team.id),
+            Match.score_a.isnot(None),
+            Match.score_b.isnot(None),
+        ).all()
 
-        total_matches = 0
-        total_goals_scored = 0
-        total_goals_against = 0
-        goal_difference = 0
+        wins = draws = losses = goals_for = goals_against = 0
 
-        wins = 0
-        draws = 0
-        losses = 0
+        for match in matches:
+            if match.team_a_id == team.id:
+                gf, ga = match.score_a, match.score_b
+            else:
+                gf, ga = match.score_b, match.score_a
 
-        # Contabiliza apenas os jogos finalizados da fase de grupos
-        for match in matches_as_team_a:
-            if match.score_a is not None and match.score_b is not None:
-                total_matches += 1
-                total_goals_scored += match.score_a
-                total_goals_against += match.score_b
-                goal_difference += match.score_a - match.score_b
+            goals_for += gf
+            goals_against += ga
 
-                if match.score_a > match.score_b:
-                    wins += 1
-                elif match.score_a == match.score_b:
-                    draws += 1
-                else:
-                    losses += 1
+            if gf > ga:
+                wins += 1
+            elif gf == ga:
+                draws += 1
+            else:
+                losses += 1
 
-        for match in matches_as_team_b:
-            if match.score_a is not None and match.score_b is not None:
-                total_matches += 1
-                total_goals_scored += match.score_b
-                total_goals_against += match.score_a
-                goal_difference += match.score_b - match.score_a
+        standings.append(
+            {
+                "team": team.name,
+                "team_id": team.id,
+                "played": wins + draws + losses,
+                "wins": wins,
+                "draws": draws,
+                "losses": losses,
+                "goals_for": goals_for,
+                "goals_against": goals_against,
+                "goal_diff": goals_for - goals_against,
+                "points": wins * 3 + draws,
+            }
+        )
 
-                if match.score_b > match.score_a:
-                    wins += 1
-                elif match.score_a == match.score_b:
-                    draws += 1
-                else:
-                    losses += 1
-
-        points = (wins * 3) + (draws * 1)  # 3 pontos por vitória, 1 ponto por empate
-
-        # Adiciona os dados de cada time na lista
-        standings_data.append({
-            'team': team.name,
-            'matches': total_matches,
-            'wins': wins,
-            'draws': draws,
-            'losses': losses,
-            'goals_scored': total_goals_scored,
-            'goals_against': total_goals_against,
-            'goal_difference': goal_difference,
-            'points': points,
-        })
-
-    # Ordena a classificação
-    standings_data.sort(key=lambda x: (x['points'], x['goal_difference'], x['goals_scored']), reverse=True)
-
-    # Atribui a posição ao time na classificação
-    for index, team_data in enumerate(standings_data, start=1):
-        team_data['position'] = index
-
-    return standings_data
+    standings.sort(
+        key=lambda x: (x["points"], x["goal_diff"], x["goals_for"]),
+        reverse=True,
+    )
+    return standings
 
 
+def check_all_matches_completed(tournament_id):
+    """True se todos os jogos de grupos do campeonato estão finalizados."""
+    incomplete = Match.query.filter(
+        Match.tournament_id == tournament_id,
+        Match.phase == "fase de grupos",
+        db.or_(Match.score_a.is_(None), Match.score_b.is_(None)),
+    ).count()
+    return incomplete == 0
 
-# Função para gerar as semi-finais
+
+def check_semi_finals_completed(tournament_id):
+    """True se todas as semi-finais do campeonato estão finalizadas."""
+    semis = Match.query.filter_by(tournament_id=tournament_id, phase="semi-final").all()
+    if not semis:
+        return False
+    return all(m.score_a is not None and m.score_b is not None for m in semis)
+
+
 def generate_semi_finals(standings_data):
-    """Gera as semi-finais após os jogos da fase de grupos serem concluídos"""
-    # Selecionando os 4 primeiros colocados da classificação
-    team_1 = standings_data[0]  # 1º colocado
-    team_2 = standings_data[1]  # 2º colocado
-    team_3 = standings_data[2]  # 3º colocado
-    team_4 = standings_data[3]  # 4º colocado
-
-    # Criando os jogos de semi-final
-    semi_final_1 = {
-        'team_a': team_1['team'],
-        'team_b': team_4['team'],
-        'winner': None  # Inicia como None, será preenchido após o jogo
-    }
-
-    semi_final_2 = {
-        'team_a': team_2['team'],
-        'team_b': team_3['team'],
-        'winner': None  # Inicia como None, será preenchido após o jogo
-    }
-
-    # Retornando as semi-finais
-    return [semi_final_1, semi_final_2]
+    """1º vs 4º e 2º vs 3º. Retorna lista de dicts ou [] se < 4 times."""
+    if len(standings_data) < 4:
+        return []
+    return [
+        {
+            "team_a_id": standings_data[0]["team_id"],
+            "team_b_id": standings_data[3]["team_id"],
+        },
+        {
+            "team_a_id": standings_data[1]["team_id"],
+            "team_b_id": standings_data[2]["team_id"],
+        },
+    ]
 
 
-
-def save_semi_finals(standings_data):
-    # Pegando os times vencedores da fase de grupos (1º x 4º e 2º x 3º)
-    team_1 = standings_data[0]['team']
-    team_4 = standings_data[3]['team']
-    team_2 = standings_data[1]['team']
-    team_3 = standings_data[2]['team']
-
-    # Criando as partidas de semi-final no banco de dados
-    semi_final_1 = Match(team_a_id=team_1.id, team_b_id=team_4.id, score_a=None, score_b=None)
-    semi_final_2 = Match(team_a_id=team_2.id, team_b_id=team_3.id, score_a=None, score_b=None)
-
-    db.session.add(semi_final_1)
-    db.session.add(semi_final_2)
+def save_semi_finals(semi_finals, tournament_id):
+    """Persiste as semi-finais. Idempotente — ignora se já existirem."""
+    if (
+        Match.query.filter_by(tournament_id=tournament_id, phase="semi-final").count()
+        > 0
+    ):
+        return
+    for sf in semi_finals:
+        db.session.add(
+            Match(
+                tournament_id=tournament_id,
+                team_a_id=sf["team_a_id"],
+                team_b_id=sf["team_b_id"],
+                phase="semi-final",
+            )
+        )
     db.session.commit()
 
 
+def generate_final(semi_finals):
+    """
+    Determina os finalistas a partir das semi-finais já jogadas.
+    Retorna dict {team_a_id, team_b_id} ou None se não for possível.
+    """
+    winners = []
+    for match in semi_finals:
+        if match.score_a is None or match.score_b is None:
+            return None
+        if match.winner is None:  # empate — futsal não deveria ter, mas tratamos
+            return None
+        winners.append(match.winner.id)
 
-# Função para verificar se todos os jogos foram finalizados
-def check_all_matches_completed():
-    # Verifica quantas partidas cada time jogou na fase de grupos
-    teams = Team.query.all()
-    
-    for team in teams:
-        # Contabiliza as partidas jogadas por cada time na fase de grupos
-        matches_as_team_a = Match.query.filter_by(team_a_id=team.id, phase='fase de grupos').count()
-        matches_as_team_b = Match.query.filter_by(team_b_id=team.id, phase='fase de grupos').count()
+    if len(winners) != 2:
+        return None
 
-        # Se o time não tiver jogado exatamente 5 partidas, retorna False
-        if matches_as_team_a + matches_as_team_b != 5:
-            return False  # Se qualquer time não tiver jogado 5 partidas, retorna False
+    return {"team_a_id": winners[0], "team_b_id": winners[1]}
 
-    # Se todos os times tiverem jogado exatamente 5 partidas, retorna True
-    return True
+
+def save_final(final_data, tournament_id):
+    """Persiste a final. Idempotente — ignora se já existir."""
+    if Match.query.filter_by(tournament_id=tournament_id, phase="final").count() > 0:
+        return
+    db.session.add(
+        Match(
+            tournament_id=tournament_id,
+            team_a_id=final_data["team_a_id"],
+            team_b_id=final_data["team_b_id"],
+            phase="final",
+        )
+    )
+    db.session.commit()

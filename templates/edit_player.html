@@ -36,14 +36,7 @@
                 <div class="mb-3">
                     {{ form.position.label(class="form-label") }}
                     {{ form.position(class="form-control", placeholder="Posição") }}
-                </div>
-
-                <div class="mb-3">
-                    {{ form.goals.label(class="form-label") }}
-                    {{ form.goals(class="form-control", placeholder="Número de gols") }}
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-4">
+                </div><div class="d-flex justify-content-between align-items-center mt-4">
                     <a href="{{ url_for('players') }}" class="btn btn-outline-secondary btn-custom-outline">
                         <i class="bi bi-arrow-left"></i> Voltar
                     </a>
@@ -57,3 +50,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
