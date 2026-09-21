@@ -10,11 +10,16 @@ from models import db, Tournament, Team, Match
 
 
 class TestTournamentRoutes:
-    def test_add_tournament_get(self, client):
-        assert client.get("/tournament/new").status_code == 200
+    def test_add_tournament_get(self, auth_client):
+        assert auth_client.get("/tournament/new").status_code == 200
 
-    def test_add_tournament_post_cria_e_seleciona(self, client, app):
-        resp = client.post(
+    def test_add_tournament_requer_login(self, client):
+        resp = client.get("/tournament/new")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
+    def test_add_tournament_post_cria_e_seleciona(self, auth_client, app):
+        resp = auth_client.post(
             "/tournament/new", data={"name": "Copa Verão", "edition": "2025"}
         )
         assert resp.status_code == 302
@@ -24,12 +29,14 @@ class TestTournamentRoutes:
             assert t.edition == "2025"
             assert t.status == "em_andamento"
 
-    def test_add_tournament_sem_nome_retorna_form(self, client):
-        resp = client.post("/tournament/new", data={"name": "", "edition": ""})
+    def test_add_tournament_sem_nome_retorna_form(self, auth_client):
+        resp = auth_client.post("/tournament/new", data={"name": "", "edition": ""})
         assert resp.status_code == 200
 
-    def test_add_tournament_sem_edicao_ok(self, client, app):
-        client.post("/tournament/new", data={"name": "Copa Sem Edição", "edition": ""})
+    def test_add_tournament_sem_edicao_ok(self, auth_client, app):
+        auth_client.post(
+            "/tournament/new", data={"name": "Copa Sem Edição", "edition": ""}
+        )
         with app.app_context():
             t = Tournament.query.filter_by(name="Copa Sem Edição").first()
             assert t.edition is None
@@ -43,11 +50,16 @@ class TestTournamentRoutes:
     def test_select_tournament_inexistente_404(self, client):
         assert client.get("/tournament/select/99999").status_code == 404
 
-    def test_finish_tournament(self, client, app, tournament):
-        client.post(f"/tournament/finish/{tournament.id}")
+    def test_finish_tournament(self, auth_client, app, tournament):
+        auth_client.post(f"/tournament/finish/{tournament.id}")
         with app.app_context():
             t = db.session.get(Tournament, tournament.id)
             assert t.status == "finalizado"
+
+    def test_finish_tournament_requer_login(self, client, tournament):
+        resp = client.post(f"/tournament/finish/{tournament.id}")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
 
     def test_index_lista_campeonatos(self, client, tournament):
         resp = client.get("/")
@@ -112,11 +124,16 @@ class TestTournamentIsolation:
             assert Match.query.filter_by(tournament_id=tournament_b.id).count() == 1
 
     def test_rotas_sem_campeonato_redirecionam(self, client):
-        """Sem nenhum campeonato no banco, rotas que dependem dele redirecionam."""
-        # client usa db limpo (fixture db recria tudo do zero)
-        for url in ["/add_team", "/players", "/matches", "/standings"]:
+        """Rotas administrativas redirecionam sem campeonato; rotas públicas mostram página vazia."""
+        # Rotas administrativas: redirecionam para login
+        for url in ["/add_team", "/players"]:
             resp = client.get(url)
             assert resp.status_code == 302, f"{url} deveria redirecionar sem campeonato"
+
+        # Rotas públicas: mostram página vazia (200)
+        for url in ["/matches", "/standings"]:
+            resp = client.get(url)
+            assert resp.status_code == 200, f"{url} deveria retornar 200 (página vazia) sem campeonato"
 
     def test_context_processor_injeta_active_tournament(self, client, tournament):
         """active_tournament aparece no contexto de qualquer template."""

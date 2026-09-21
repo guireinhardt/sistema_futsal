@@ -1,11 +1,24 @@
 import os
+from urllib.parse import urlparse
 from flask import Flask, flash, render_template, request, redirect, session, url_for
 from flask_wtf import CSRFProtect
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    logout_user,
+    login_required,
+    current_user,
+)
+from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.security import check_password_hash
 from sqlalchemy import func
 from dotenv import load_dotenv
 
 from models import db, Tournament, Team, Player, Match, PlayerMatchStat
-from forms import TournamentForm, TeamForm, PlayerForm, MatchForm
+from forms import TournamentForm, TeamForm, PlayerForm, MatchForm, LoginForm
 from unidecode import unidecode
 from utils import build_logo_filename
 from services.standingsService import (
@@ -16,6 +29,8 @@ from services.standingsService import (
     save_semi_finals,
     generate_final,
     save_final,
+    generate_third_place,
+    save_third_place,
 )
 
 load_dotenv()
@@ -27,12 +42,103 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL", "sqlite:///football.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# pool_pre_ping evita erros quando o Postgres gerenciado (ex: Neon) suspende a
+# conexão por inatividade; pool_recycle descarta conexões antes que o servidor
+# as feche por conta própria.
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 280,
+}
+# Limite global de tamanho de requisição (o upload de logo já valida 2MB à
+# parte, isso aqui é uma rede de segurança contra requisições anormalmente
+# grandes consumindo memória da instância).
+app.config["MAX_CONTENT_LENGTH"] = 3 * 1024 * 1024
 
 db.init_app(app)
+migrate = Migrate(app, db)
 csrf = CSRFProtect(app)
+limiter = Limiter(get_remote_address, app=app, default_limits=[])
 
-with app.app_context():
-    db.create_all()
+# O schema é gerenciado via Flask-Migrate (flask db upgrade), não mais
+# criado automaticamente aqui — evita conflito entre create_all() e migrations.
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Autenticação (admin único, credenciais via variáveis de ambiente)
+# ──────────────────────────────────────────────────────────────────────────────
+
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
+
+if not ADMIN_PASSWORD_HASH and not app.config["DEBUG"]:
+    raise RuntimeError(
+        "ADMIN_PASSWORD_HASH não configurado. Defina-o no .env (veja .env.example)."
+    )
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+login_manager.login_message = "Faça login para acessar esta área."
+login_manager.login_message_category = "warning"
+
+
+class AdminUser(UserMixin):
+    """Usuário organizador único — não há tabela de usuários."""
+
+    id = "admin"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return AdminUser() if user_id == "admin" else None
+
+
+@app.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
+
+    form = LoginForm()
+    if form.validate_on_submit():
+        valid_user = form.username.data == ADMIN_USERNAME
+        valid_pass = ADMIN_PASSWORD_HASH and check_password_hash(
+            ADMIN_PASSWORD_HASH, form.password.data
+        )
+        if valid_user and valid_pass:
+            login_user(AdminUser())
+            flash("Login realizado com sucesso!", "success")
+            next_page = request.args.get("next")
+            if not next_page or urlparse(next_page).netloc:
+                next_page = url_for("index")
+            return redirect(next_page)
+        flash("Usuário ou senha inválidos.", "danger")
+    return render_template("login.html", form=form)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Você saiu da área administrativa.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/healthz")
+def healthz():
+    """Endpoint leve para health check da plataforma de deploy (sem tocar o banco)."""
+    return {"status": "ok"}, 200
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template("errors/404.html"), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template("errors/500.html"), 500
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -124,6 +230,7 @@ def _save_logo_tournament(file_storage, tournament_name):
 
 
 @app.route("/tournament/new", methods=["GET", "POST"])
+@login_required
 def add_tournament():
     form = TournamentForm()
     if form.validate_on_submit():
@@ -157,6 +264,7 @@ def select_tournament(tid):
 
 
 @app.route("/tournament/finish/<int:tid>", methods=["POST"])
+@login_required
 def finish_tournament(tid):
     t = Tournament.query.get_or_404(tid)
     t.status = "finalizado"
@@ -201,6 +309,7 @@ def get_logo(team):
 
 
 @app.route("/add_team", methods=["GET", "POST"])
+@login_required
 def add_team():
     active = require_tournament()
     if not active:
@@ -244,6 +353,7 @@ def players():
 
 
 @app.route("/add_player", methods=["GET", "POST"])
+@login_required
 def add_player():
     active = require_tournament()
     if not active:
@@ -269,6 +379,7 @@ def add_player():
 
 
 @app.route("/edit_player/<int:player_id>", methods=["GET", "POST"])
+@login_required
 def edit_player(player_id):
     player = Player.query.get_or_404(player_id)
     active = require_tournament()
@@ -337,9 +448,9 @@ def top_scorers():
 
 @app.route("/matches")
 def matches():
-    active = require_tournament()
+    active = get_active_tournament()
     if not active:
-        return redirect(url_for("add_tournament"))
+        return render_template("matches_empty.html")
 
     tid = active.id
     group_stage_matches = Match.query.filter_by(
@@ -363,6 +474,7 @@ def matches():
 
 
 @app.route("/add_match", methods=["GET", "POST"])
+@login_required
 def add_match():
     active = require_tournament()
     if not active:
@@ -389,6 +501,7 @@ def add_match():
 
 
 @app.route("/edit_match/<int:match_id>", methods=["GET", "POST"])
+@login_required
 def edit_match(match_id):
     match = Match.query.get_or_404(match_id)
     players_a = (
@@ -474,9 +587,9 @@ def match_detail(match_id):
 
 @app.route("/standings")
 def standings():
-    active = require_tournament()
+    active = get_active_tournament()
     if not active:
-        return redirect(url_for("add_tournament"))
+        return render_template("standings_empty.html")
 
     tid = active.id
     standings_data = calculate_standings(tid)
@@ -489,6 +602,7 @@ def standings():
 
     semi_finals = Match.query.filter_by(tournament_id=tid, phase="semi-final").all()
     final_match = Match.query.filter_by(tournament_id=tid, phase="final").first()
+    third_place_match = Match.query.filter_by(tournament_id=tid, phase="3º-lugar").first()
 
     for m in semi_finals:
         m.team_a.logo_filename = get_logo(m.team_a)
@@ -498,17 +612,23 @@ def standings():
         final_match.team_a.logo_filename = get_logo(final_match.team_a)
         final_match.team_b.logo_filename = get_logo(final_match.team_b)
 
+    if third_place_match:
+        third_place_match.team_a.logo_filename = get_logo(third_place_match.team_a)
+        third_place_match.team_b.logo_filename = get_logo(third_place_match.team_b)
+
     return render_template(
         "standings.html",
         standings=standings_data,
         semi_finals=semi_finals,
         final_match=final_match,
+        third_place_match=third_place_match,
         all_matches_completed=check_all_matches_completed(tid),
         semi_finals_completed=check_semi_finals_completed(tid),
     )
 
 
 @app.route("/generate_semi_finals", methods=["POST"])
+@login_required
 def generate_semi_finals_route():
     active = require_tournament()
     if not active:
@@ -535,6 +655,7 @@ def generate_semi_finals_route():
 
 
 @app.route("/generate_final", methods=["POST"])
+@login_required
 def generate_final_route():
     active = require_tournament()
     if not active:
@@ -561,7 +682,10 @@ def generate_final_route():
         return redirect(url_for("standings"))
 
     save_final(final_data, tid)
-    flash("Final gerada! Boa sorte aos finalistas!", "success")
+    third_place_data = generate_third_place(semis)
+    if third_place_data:
+        save_third_place(third_place_data, tid)
+    flash("Final e confronto de 3º lugar gerados!", "success")
     return redirect(url_for("standings"))
 
 

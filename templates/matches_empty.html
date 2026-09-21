@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <title>Lista de Jogos</title>
+    <link rel="stylesheet" href="../static/css/matches.css">
+</head>
+<body>
+    <header class="site-header">
+        <h1>Lista de Jogos</h1>
+        <a href="{{ url_for('index') }}" class="btn btn-primary voltar">Voltar</a>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light voltar">Sair</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light voltar">Login</a>
+        {% endif %}
+    </header>
+
+    <div class="container py-5">
+        <div class="fase-container">
+            <p class="alert alert-info text-center">Nenhum campeonato em andamento. Os jogos serão exibidos quando um campeonato for criado.</p>
+            <div class="text-center">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar para o início</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

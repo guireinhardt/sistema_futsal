@@ -1,7 +1,20 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, IntegerField, SubmitField, FileField
+from wtforms import (
+    StringField,
+    SelectField,
+    IntegerField,
+    SubmitField,
+    FileField,
+    PasswordField,
+)
 from wtforms.validators import DataRequired, NumberRange, Optional
 from flask_wtf.file import FileAllowed
+
+
+class LoginForm(FlaskForm):
+    username = StringField("Usuário", validators=[DataRequired()])
+    password = PasswordField("Senha", validators=[DataRequired()])
+    submit = SubmitField("Entrar")
 
 
 class TournamentForm(FlaskForm):

@@ -4,13 +4,18 @@ Fixtures compartilhadas. Cada teste recebe banco SQLite em memória limpo.
 
 import os
 import pytest
+from werkzeug.security import generate_password_hash
 
 os.environ.setdefault("SECRET_KEY", "test-key")
 os.environ.setdefault("DEBUG", "False")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+os.environ.setdefault("ADMIN_USERNAME", "admin")
+os.environ.setdefault("ADMIN_PASSWORD_HASH", generate_password_hash("test-password"))
 
-from app import app as flask_app
+from app import app as flask_app, limiter
 from models import db as _db, Tournament, Team, Player, Match, PlayerMatchStat
+
+limiter.enabled = False
 
 # ── App / DB ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +47,17 @@ def db(app):
 @pytest.fixture(scope="function")
 def client(app, db):
     with app.test_client() as c:
+        yield c
+
+
+@pytest.fixture(scope="function")
+def auth_client(app, db):
+    """Client autenticado como o admin organizador — para testar rotas protegidas."""
+    with app.test_client() as c:
+        c.post(
+            "/login",
+            data={"username": "admin", "password": "test-password"},
+        )
         yield c
 
 

@@ -130,6 +130,26 @@ def generate_final(semi_finals):
     return {"team_a_id": winners[0], "team_b_id": winners[1]}
 
 
+def generate_third_place(semi_finals):
+    """
+    Determina o 3º e 4º lugares a partir das semi-finais.
+    Retorna dict {team_a_id, team_b_id} (perdedores) ou None se não for possível.
+    """
+    losers = []
+    for match in semi_finals:
+        if match.score_a is None or match.score_b is None:
+            return None
+        if match.winner is None:  # empate — futsal não deveria ter, mas tratamos
+            return None
+        loser_id = match.team_b_id if match.winner.id == match.team_a_id else match.team_a_id
+        losers.append(loser_id)
+
+    if len(losers) != 2:
+        return None
+
+    return {"team_a_id": losers[0], "team_b_id": losers[1]}
+
+
 def save_final(final_data, tournament_id):
     """Persiste a final. Idempotente — ignora se já existir."""
     if Match.query.filter_by(tournament_id=tournament_id, phase="final").count() > 0:
@@ -140,6 +160,21 @@ def save_final(final_data, tournament_id):
             team_a_id=final_data["team_a_id"],
             team_b_id=final_data["team_b_id"],
             phase="final",
+        )
+    )
+    db.session.commit()
+
+
+def save_third_place(third_place_data, tournament_id):
+    """Persiste o confronto de 3º lugar. Idempotente — ignora se já existir."""
+    if Match.query.filter_by(tournament_id=tournament_id, phase="3º-lugar").count() > 0:
+        return
+    db.session.add(
+        Match(
+            tournament_id=tournament_id,
+            team_a_id=third_place_data["team_a_id"],
+            team_b_id=third_place_data["team_b_id"],
+            phase="3º-lugar",
         )
     )
     db.session.commit()

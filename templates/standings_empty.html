@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela de Classificação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/classificacao.css') }}">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="site-header text-center py-4">
+        <h1 class="titulo">Tabela de Classificação</h1>
+        <div class="mt-1" style="font-size:0.8rem;">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}">Sair da área administrativa</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login do organizador</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="container my-5">
+        <p class="alert alert-info text-center">Nenhum campeonato em andamento. A classificação será exibida quando um campeonato for criado.</p>
+        <div class="text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar para o início</a>
+        </div>
+    </div>
+
+    <footer class="site-footer text-center py-3">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar</a>
+    </footer>
+
+</body>
+</html>

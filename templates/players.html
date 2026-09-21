@@ -21,6 +21,13 @@
         <div class="text-center mb-4">
             <h1 class="display-4 text-primary">Lista de Jogadores</h1>
             <p class="lead">Confira os jogadores por time e suas respectivas estatísticas</p>
+            <p style="font-size:0.85rem;">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}">Sair da área administrativa</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login do organizador</a>
+                {% endif %}
+            </p>
         </div>
 
         <!-- Cards de Times e Jogadores -->
@@ -43,9 +50,11 @@
                                     <strong>{{ player.name }}</strong><br>
                                     <small>{{ player.position }}</small>
                                 </div>
+                                {% if current_user.is_authenticated %}
                                 <a href="{{ url_for('edit_player', player_id=player.id) }}" class="btn btn-warning btn-sm ms-2">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
+                                {% endif %}
                             </li>
                             {% endfor %}
                         </ul>

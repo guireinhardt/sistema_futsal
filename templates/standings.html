@@ -15,6 +15,13 @@
             <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="tournament-logo">
         {% endif %}
         <h1 class="titulo">Tabela de Classificação</h1>
+        <div class="mt-1" style="font-size:0.8rem;">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('logout') }}">Sair da área administrativa</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login do organizador</a>
+            {% endif %}
+        </div>
     </header>
 
     <!-- Mensagem de Aguardando Fase de Grupos -->
@@ -89,9 +96,11 @@
                     <td>{{ match.team_a.name }}</td>
                     <td>{{ match.team_b.name }}</td>
                     <td>
+                        {% if current_user.is_authenticated %}
                         <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
                             ✏️ Editar
                         </a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -122,9 +131,11 @@
                     <td>{{ match.team_a.name }}</td>
                     <td>{{ match.team_b.name }}</td>
                     <td>
+                        {% if current_user.is_authenticated %}
                         <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
                             ✏️ Editar
                         </a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -133,6 +144,37 @@
     </section>
     {% else %}
     <p class="alert alert-info text-center">A final ainda não foi definida.</p>
+    {% endif %}
+
+    <!-- Confronto de 3º lugar -->
+    {% if third_place_match %}
+    <section id="third-place" class="container my-5">
+        <h2 class="semi-final-titulo">Confronto de 3º Lugar</h2>
+        <table class="tabelaClassificacao semi-final">
+            <thead>
+                <tr>
+                    <th>Jogo</th>
+                    <th>Mandante</th>
+                    <th>Visitante</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>3º lugar</td>
+                    <td>{{ third_place_match.team_a.name }}</td>
+                    <td>{{ third_place_match.team_b.name }}</td>
+                    <td>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('edit_match', match_id=third_place_match.id) }}" class="btn btn-warning">
+                            ✏️ Editar
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
     {% endif %}
 
     <footer class="site-footer text-center py-3">

@@ -1,7 +1,27 @@
 """Testes de integração das rotas HTTP."""
 
 import pytest
+from app import limiter
 from models import db, Team, Player, Match, PlayerMatchStat
+
+
+class TestSaude:
+    def test_healthz(self, client):
+        resp = client.get("/healthz")
+        assert resp.status_code == 200
+        assert resp.get_json() == {"status": "ok"}
+
+
+class TestRateLimitLogin:
+    def test_login_bloqueia_apos_muitas_tentativas(self, app, client):
+        limiter.enabled = True
+        try:
+            for _ in range(10):
+                client.post("/login", data={"username": "x", "password": "y"})
+            resp = client.post("/login", data={"username": "x", "password": "y"})
+            assert resp.status_code == 429
+        finally:
+            limiter.enabled = False
 
 
 class TestRotasPublicas:
@@ -25,27 +45,32 @@ class TestRotasPublicas:
 
 
 class TestRotasTimes:
-    def test_add_team_get(self, client, tournament):
-        assert client.get("/add_team").status_code == 200
+    def test_add_team_get(self, auth_client, tournament):
+        assert auth_client.get("/add_team").status_code == 200
 
-    def test_add_team_post(self, client, app, tournament):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post("/add_team", data={"name": "Novo Time"})
+    def test_add_team_requer_login(self, client, tournament):
+        resp = client.get("/add_team")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
+    def test_add_team_post(self, auth_client, app, tournament):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/add_team", data={"name": "Novo Time"})
         with app.app_context():
             assert Team.query.filter_by(
                 name="Novo Time", tournament_id=tournament.id
             ).first()
 
-    def test_add_team_nome_vazio_retorna_form(self, client, tournament):
-        client.get(f"/tournament/select/{tournament.id}")
-        resp = client.post("/add_team", data={"name": ""})
+    def test_add_team_nome_vazio_retorna_form(self, auth_client, tournament):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        resp = auth_client.post("/add_team", data={"name": ""})
         assert resp.status_code == 200
 
 
 class TestRotasJogadores:
-    def test_add_player_post(self, client, app, tournament, team_a):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post(
+    def test_add_player_post(self, auth_client, app, tournament, team_a):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post(
             "/add_player",
             data={
                 "name": "Pedro Lima",
@@ -57,12 +82,17 @@ class TestRotasJogadores:
         with app.app_context():
             assert Player.query.filter_by(name="Pedro Lima").first()
 
-    def test_edit_player_get(self, client, player_a):
-        assert client.get(f"/edit_player/{player_a.id}").status_code == 200
+    def test_edit_player_get(self, auth_client, player_a):
+        assert auth_client.get(f"/edit_player/{player_a.id}").status_code == 200
 
-    def test_edit_player_post(self, client, app, tournament, player_a, team_a):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post(
+    def test_edit_player_requer_login(self, client, player_a):
+        resp = client.get(f"/edit_player/{player_a.id}")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
+    def test_edit_player_post(self, auth_client, app, tournament, player_a, team_a):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post(
             f"/edit_player/{player_a.id}",
             data={
                 "name": "João Atualizado",
@@ -76,18 +106,23 @@ class TestRotasJogadores:
             assert p.name == "João Atualizado"
             assert p.shirt_number == 99
 
-    def test_edit_player_404(self, client):
-        assert client.get("/edit_player/99999").status_code == 404
+    def test_edit_player_404(self, auth_client):
+        assert auth_client.get("/edit_player/99999").status_code == 404
 
 
 class TestRotasPartidas:
-    def test_add_match_get(self, client, tournament, team_a, team_b):
-        client.get(f"/tournament/select/{tournament.id}")
-        assert client.get("/add_match").status_code == 200
+    def test_add_match_get(self, auth_client, tournament, team_a, team_b):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        assert auth_client.get("/add_match").status_code == 200
 
-    def test_add_match_post(self, client, app, tournament, team_a, team_b):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post(
+    def test_add_match_requer_login(self, client, tournament, team_a, team_b):
+        resp = client.get("/add_match")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
+    def test_add_match_post(self, auth_client, app, tournament, team_a, team_b):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post(
             "/add_match",
             data={
                 "team_a_id": team_a.id,
@@ -101,9 +136,9 @@ class TestRotasPartidas:
             assert m.score_a is None
 
     def test_edit_match_post_salva_placar(
-        self, client, app, pending_match, player_a, player_b
+        self, auth_client, app, pending_match, player_a, player_b
     ):
-        client.post(
+        auth_client.post(
             f"/edit_match/{pending_match.id}",
             data={
                 "score_a": 2,
@@ -122,7 +157,7 @@ class TestRotasPartidas:
             assert m.score_b == 1
 
     def test_edit_match_stats_zerados_deletados(
-        self, client, app, finished_match, player_a, team_a
+        self, auth_client, app, finished_match, player_a, team_a
     ):
         with app.app_context():
             db.session.add(
@@ -137,7 +172,7 @@ class TestRotasPartidas:
             )
             db.session.commit()
 
-        client.post(
+        auth_client.post(
             f"/edit_match/{finished_match.id}",
             data={
                 "score_a": 0,
@@ -155,8 +190,8 @@ class TestRotasPartidas:
                 is None
             )
 
-    def test_edit_match_404(self, client):
-        assert client.get("/edit_match/99999").status_code == 404
+    def test_edit_match_404(self, auth_client):
+        assert auth_client.get("/edit_match/99999").status_code == 404
 
     def test_match_detail(self, client, finished_match):
         assert client.get(f"/match/{finished_match.id}").status_code == 200
@@ -166,12 +201,17 @@ class TestRotasPartidas:
 
 
 class TestRotaClassificacao:
+    def test_generate_semis_requer_login(self, client, tournament, pending_match):
+        resp = client.post("/generate_semi_finals")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
     def test_generate_semis_sem_grupos_completos(
-        self, client, tournament, pending_match
+        self, auth_client, tournament, pending_match
     ):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post("/generate_semi_finals")
-        with client.application.app_context():
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_semi_finals")
+        with auth_client.application.app_context():
             assert (
                 Match.query.filter_by(
                     tournament_id=tournament.id, phase="semi-final"
@@ -180,10 +220,10 @@ class TestRotaClassificacao:
             )
 
     def test_generate_semis_com_grupos_completos(
-        self, client, app, tournament, complete_group_stage
+        self, auth_client, app, tournament, complete_group_stage
     ):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post("/generate_semi_finals")
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_semi_finals")
         with app.app_context():
             assert (
                 Match.query.filter_by(
@@ -193,11 +233,11 @@ class TestRotaClassificacao:
             )
 
     def test_generate_semis_idempotente(
-        self, client, app, tournament, complete_group_stage
+        self, auth_client, app, tournament, complete_group_stage
     ):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post("/generate_semi_finals")
-        client.post("/generate_semi_finals")
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_semi_finals")
+        auth_client.post("/generate_semi_finals")
         with app.app_context():
             assert (
                 Match.query.filter_by(
@@ -206,9 +246,9 @@ class TestRotaClassificacao:
                 == 2
             )
 
-    def test_generate_final(self, client, app, tournament, semi_finals_finished):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post("/generate_final")
+    def test_generate_final(self, auth_client, app, tournament, semi_finals_finished):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_final")
         with app.app_context():
             assert (
                 Match.query.filter_by(
@@ -218,11 +258,11 @@ class TestRotaClassificacao:
             )
 
     def test_generate_final_idempotente(
-        self, client, app, tournament, semi_finals_finished
+        self, auth_client, app, tournament, semi_finals_finished
     ):
-        client.get(f"/tournament/select/{tournament.id}")
-        client.post("/generate_final")
-        client.post("/generate_final")
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_final")
+        auth_client.post("/generate_final")
         with app.app_context():
             assert (
                 Match.query.filter_by(
