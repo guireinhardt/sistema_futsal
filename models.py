@@ -45,6 +45,7 @@ class Team(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
+    acronym = db.Column(db.String(4), nullable=False, default="")
     logo_filename = db.Column(
         db.String(120), nullable=True
     )  # nome do arquivo em static/logos/

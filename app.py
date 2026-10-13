@@ -325,6 +325,7 @@ def add_team():
 
         team = Team(
             name=form.name.data.strip(),
+            acronym=form.acronym.data.strip().upper(),
             tournament_id=active.id,
             logo_filename=logo_filename,
         )
@@ -333,6 +334,35 @@ def add_team():
         flash("Time adicionado com sucesso!", "success")
         return redirect(url_for("index"))
     return render_template("add_team.html", form=form)
+
+
+@app.route("/edit_team/<int:team_id>", methods=["GET", "POST"])
+@login_required
+def edit_team(team_id):
+    team = Team.query.get_or_404(team_id)
+    active = require_tournament()
+    if not active:
+        return redirect(url_for("add_tournament"))
+
+    form = TeamForm()
+    if form.validate_on_submit():
+        try:
+            if form.logo.data:
+                logo_filename = _save_logo(form.logo.data, form.name.data.strip())
+                team.logo_filename = logo_filename
+        except ValueError as e:
+            flash(str(e), "danger")
+            return render_template("edit_team.html", form=form, team=team)
+
+        team.name = form.name.data.strip()
+        team.acronym = form.acronym.data.strip().upper()
+        db.session.commit()
+        flash("Time atualizado com sucesso!", "success")
+        return redirect(url_for("players"))
+
+    form.name.data = team.name
+    form.acronym.data = team.acronym
+    return render_template("edit_team.html", form=form, team=team)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -55,7 +55,7 @@ class TestRotasTimes:
 
     def test_add_team_post(self, auth_client, app, tournament):
         auth_client.get(f"/tournament/select/{tournament.id}")
-        auth_client.post("/add_team", data={"name": "Novo Time"})
+        auth_client.post("/add_team", data={"name": "Novo Time", "acronym": "NTM"})
         with app.app_context():
             assert Team.query.filter_by(
                 name="Novo Time", tournament_id=tournament.id
@@ -63,8 +63,30 @@ class TestRotasTimes:
 
     def test_add_team_nome_vazio_retorna_form(self, auth_client, tournament):
         auth_client.get(f"/tournament/select/{tournament.id}")
-        resp = auth_client.post("/add_team", data={"name": ""})
+        resp = auth_client.post("/add_team", data={"name": "", "acronym": ""})
         assert resp.status_code == 200
+
+    def test_edit_team_get(self, auth_client, team_a):
+        assert auth_client.get(f"/edit_team/{team_a.id}").status_code == 200
+
+    def test_edit_team_requer_login(self, client, team_a):
+        resp = client.get(f"/edit_team/{team_a.id}")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
+    def test_edit_team_post(self, auth_client, app, tournament, team_a):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post(
+            f"/edit_team/{team_a.id}",
+            data={"name": "Time Atualizado", "acronym": "TUA"},
+        )
+        with app.app_context():
+            t = db.session.get(Team, team_a.id)
+            assert t.name == "Time Atualizado"
+            assert t.acronym == "TUA"
+
+    def test_edit_team_404(self, auth_client):
+        assert auth_client.get("/edit_team/99999").status_code == 404
 
 
 class TestRotasJogadores:

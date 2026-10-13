@@ -40,6 +40,11 @@
                         <img src="{{ url_for('static', filename='logos/' + team.logo_filename) }}" alt="{{ team.name }}" class="img-fluid" style="width: 60px; height: 60px; border-radius: 50%;">
 
                         <h5 class="mt-2">{{ team.name }}</h5>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('edit_team', team_id=team.id) }}" class="btn btn-warning btn-sm mt-2">
+                            <i class="fas fa-edit"></i> Editar Time
+                        </a>
+                        {% endif %}
                     </div>
                     <div class="card-body">
                         <h6 class="card-title text-center">Jogadores</h6>

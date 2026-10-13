@@ -29,6 +29,7 @@ class TournamentForm(FlaskForm):
 
 class TeamForm(FlaskForm):
     name = StringField("Nome do time", validators=[DataRequired()])
+    acronym = StringField("Sigla (ex: ACE, TCA)", validators=[DataRequired()])
     logo = FileField(
         "Logo do time (JPG ou PNG, máx. 2MB)",
         validators=[FileAllowed(["jpg", "jpeg", "png"], "Apenas JPG ou PNG.")],
