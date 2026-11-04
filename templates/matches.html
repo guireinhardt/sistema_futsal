@@ -7,11 +7,9 @@
 <body>
    <!-- Cabeçalho fixo com o título e o botão Voltar -->
     <header class="site-header">
-        <h1>Tabela de Jogos 2025</h1>
+        <h1>Tabela de Jogos</h1>
         <a href="{{ url_for('index') }}" class="btn btn-primary voltar">Voltar</a>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-light voltar">Sair</a>
-        {% else %}
+        {% if not current_user.is_authenticated %}
             <a href="{{ url_for('login') }}" class="btn btn-outline-light voltar">Login</a>
         {% endif %}
     </header>
@@ -38,7 +36,7 @@
                         <tr>
                             <td class="centralizar">
                                 <div class="team-info">
-                                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + match.team_a.logo_filename) }}" alt="{{ match.team_a.name }} logo">
+                                    <img class="logo-time" src="{{ get_logo_url(match.team_a.logo_filename) }}" alt="{{ match.team_a.name }} logo">
                                     <span>{{ match.team_a.name }}</span>
                                 </div>
                             </td>
@@ -51,7 +49,7 @@
                             </td>
                             <td class="centralizar">
                                 <div class="team-info">
-                                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + match.team_b.logo_filename) }}" alt="{{ match.team_b.name }} logo">
+                                    <img class="logo-time" src="{{ get_logo_url(match.team_b.logo_filename) }}" alt="{{ match.team_b.name }} logo">
                                     <span>{{ match.team_b.name }}</span>
                                 </div>
                             </td>
@@ -94,7 +92,7 @@
                         <tr>
                             <td class="centralizar">
                                 <div class="team-info">
-                                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + match.team_a.logo_filename) }}" alt="{{ match.team_a.name }} logo">
+                                    <img class="logo-time" src="{{ get_logo_url(match.team_a.logo_filename) }}" alt="{{ match.team_a.name }} logo">
                                     <span>{{ match.team_a.name }}</span>
                                 </div>
                             </td>
@@ -107,7 +105,7 @@
                             </td>
                             <td class="centralizar">
                                 <div class="team-info">
-                                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + match.team_b.logo_filename) }}" alt="{{ match.team_b.name }} logo">
+                                    <img class="logo-time" src="{{ get_logo_url(match.team_b.logo_filename) }}" alt="{{ match.team_b.name }} logo">
                                     <span>{{ match.team_b.name }}</span>
                                 </div>
                             </td>
@@ -150,7 +148,7 @@
                         <tr>
                             <td class="centralizar">
                                 <div class="team-info">
-                                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + final_match.team_a.logo_filename) }}" alt="{{ final_match.team_a.name }} logo">
+                                    <img class="logo-time" src="{{ get_logo_url(final_match.team_a.logo_filename) }}" alt="{{ final_match.team_a.name }} logo">
                                     <span>{{ final_match.team_a.name }}</span>
                                 </div>
                             </td>
@@ -163,7 +161,7 @@
                             </td>
                             <td class="centralizar">
                                 <div class="team-info">
-                                    <img class="logo-time" src="{{ url_for('static', filename='logos/' + final_match.team_b.logo_filename) }}" alt="{{ final_match.team_b.name }} logo">
+                                    <img class="logo-time" src="{{ get_logo_url(final_match.team_b.logo_filename) }}" alt="{{ final_match.team_b.name }} logo">
                                     <span>{{ final_match.team_b.name }}</span>
                                 </div>
                             </td>

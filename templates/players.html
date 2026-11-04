@@ -23,7 +23,7 @@
             <p class="lead">Confira os jogadores por time e suas respectivas estatísticas</p>
             <p style="font-size:0.85rem;">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('logout') }}">Sair da área administrativa</a>
+                    {% with logout_class="link-primary" %}{% include "_logout_form.html" %}{% endwith %}
                 {% else %}
                     <a href="{{ url_for('login') }}">Login do organizador</a>
                 {% endif %}
@@ -37,7 +37,7 @@
                 <!-- Card para cada time -->
                 <div class="card shadow-sm">
                     <div class="card-header text-center">
-                        <img src="{{ url_for('static', filename='logos/' + team.logo_filename) }}" alt="{{ team.name }}" class="img-fluid" style="width: 60px; height: 60px; border-radius: 50%;">
+                        <img src="{{ get_logo_url(team.logo_filename) }}" alt="{{ team.name }}" class="img-fluid" style="width: 60px; height: 60px; border-radius: 50%;">
 
                         <h5 class="mt-2">{{ team.name }}</h5>
                         {% if current_user.is_authenticated %}

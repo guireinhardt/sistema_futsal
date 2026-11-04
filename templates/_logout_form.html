@@ -1,0 +1,8 @@
+{# Logout via POST + CSRF: um link/imagem em outro site não consegue deslogar o admin. #}
+<form action="{{ url_for('logout') }}" method="post" style="display:inline; margin:0;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="{{ logout_class|default('') }}"
+            style="cursor:pointer;{% if not logout_button %} border:none; font-family:inherit; font-size:inherit; background:none; padding:0; text-decoration:underline;{% if not logout_class %} color:inherit;{% endif %}{% endif %}">
+        {{ logout_label|default('Sair da área administrativa') }}
+    </button>
+</form>

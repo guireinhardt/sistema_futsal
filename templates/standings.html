@@ -12,12 +12,12 @@
     <!-- Header -->
     <header class="site-header text-center py-4">
         {% if tournament_logo %}
-            <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="tournament-logo">
+            <img src="{{ tournament_logo }}" alt="Logo do Campeonato" class="tournament-logo">
         {% endif %}
         <h1 class="titulo">Tabela de Classificação</h1>
         <div class="mt-1" style="font-size:0.8rem;">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}">Sair da área administrativa</a>
+                {% include "_logout_form.html" %}
             {% else %}
                 <a href="{{ url_for('login') }}">Login do organizador</a>
             {% endif %}
@@ -54,7 +54,7 @@
                         <td>{{ data.position }}</td>
                         <td>
                             <img class="logo-time"
-                                src="{{ url_for('static', filename='logos/' ~ data.logo_filename) }}"
+                                src="{{ get_logo_url(data.logo_filename) }}"
                                 alt="{{ data.team }} logo">
                         </td>
                         <td>{{ data.team }}</td>

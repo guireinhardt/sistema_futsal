@@ -19,12 +19,12 @@
   <!-- Header -->
   <header class="site-header text-center py-5">
     {% if tournament_logo %}
-            <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="logo mb-3">
+            <img src="{{ tournament_logo }}" alt="Logo do Campeonato" class="logo mb-3">
           {% endif %}
     <h1>{% if active_tournament %}{{ active_tournament.display_name }}{% else %}Sistema de Campeonato{% endif %}</h1>
     <div class="mt-2" style="font-size:0.85rem;">
       {% if current_user.is_authenticated %}
-        <a href="{{ url_for('logout') }}" class="text-white">Sair da área administrativa</a>
+        {% with logout_class="btn btn-outline-light btn-sm", logout_button=true %}{% include "_logout_form.html" %}{% endwith %}
       {% else %}
         <a href="{{ url_for('login') }}" class="text-white">Login do organizador</a>
       {% endif %}
@@ -107,6 +107,7 @@
         </a>
       </div>
 
+      {% if current_user.is_authenticated %}
       <div class="col-md-4 col-lg-3">
         <a href="{{ url_for('add_tournament') }}" class="menu-card text-decoration-none">
           <div class="card h-100 shadow-sm">
@@ -116,6 +117,7 @@
           </div>
         </a>
       </div>
+      {% endif %}
 
     </div>
   </main>

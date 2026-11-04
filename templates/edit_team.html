@@ -22,7 +22,7 @@
 
             <!-- Logo central -->
             {% if tournament_logo %}
-            <img src="{{ url_for('static', filename='logos/' + tournament_logo) }}" alt="Logo do Campeonato" class="form-logo mb-3">
+            <img src="{{ tournament_logo }}" alt="Logo do Campeonato" class="form-logo mb-3">
           {% endif %}
 
             <h2 class="card-title mb-4">Editar Time</h2>
@@ -75,7 +75,7 @@
                     {% if team.logo_filename %}
                     <div class="mt-3">
                         <div class="form-text text-muted mb-2">Logo atual:</div>
-                        <img src="{{ url_for('static', filename='logos/' + team.logo_filename) }}" alt="Logo do Time"
+                        <img src="{{ get_logo_url(team.logo_filename) }}" alt="Logo do Time"
                              style="max-height:80px; max-width:80px; border-radius:8px; border:1px solid #dee2e6;">
                     </div>
                     {% endif %}

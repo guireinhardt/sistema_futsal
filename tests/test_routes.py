@@ -1,8 +1,94 @@
 """Testes de integração das rotas HTTP."""
 
+import io
+
 import pytest
+from PIL import Image
 from app import limiter
 from models import db, Team, Player, Match, PlayerMatchStat
+
+
+class TestSeguranca:
+    def test_cabecalhos_de_seguranca(self, client):
+        resp = client.get("/")
+        assert resp.headers["X-Frame-Options"] == "DENY"
+        assert resp.headers["X-Content-Type-Options"] == "nosniff"
+
+    @pytest.mark.parametrize(
+        "destino", ["https://evil.com", "//evil.com", "/\\evil.com", "evil.com"]
+    )
+    def test_login_nao_redireciona_para_fora(self, client, destino):
+        resp = client.post(
+            "/login",
+            query_string={"next": destino},
+            data={"username": "admin", "password": "test-password"},
+        )
+        assert resp.status_code == 302
+        assert resp.headers["Location"] == "/"
+
+    def test_login_redireciona_para_pagina_interna(self, client):
+        resp = client.post(
+            "/login",
+            query_string={"next": "/add_team"},
+            data={"username": "admin", "password": "test-password"},
+        )
+        assert resp.headers["Location"] == "/add_team"
+
+    def test_logout_por_post_desloga(self, auth_client):
+        resp = auth_client.post("/logout")
+        assert resp.status_code == 302
+        assert "/login" in auth_client.get("/add_team").headers["Location"]
+
+    def test_logout_por_get_nao_desloga(self, auth_client, tournament):
+        assert auth_client.get("/logout").status_code == 405
+        assert auth_client.get("/add_team").status_code == 200
+
+    def test_logout_sem_token_csrf_nao_desloga(self, app, auth_client, tournament):
+        app.config["WTF_CSRF_ENABLED"] = True
+        try:
+            assert auth_client.post("/logout").status_code == 400
+        finally:
+            app.config["WTF_CSRF_ENABLED"] = False
+        assert auth_client.get("/add_team").status_code == 200
+
+    def test_lista_de_jogos_nao_tem_sair(self, auth_client, tournament):
+        assert b'action="/logout"' not in auth_client.get("/matches").data
+
+    @pytest.mark.parametrize("pagina", ["/", "/standings", "/players"])
+    def test_botao_sair_e_formulario_com_token(self, app, auth_client, tournament, pagina):
+        app.config["WTF_CSRF_ENABLED"] = True
+        try:
+            html = auth_client.get(pagina).data.decode()
+        finally:
+            app.config["WTF_CSRF_ENABLED"] = False
+        assert 'action="/logout" method="post"' in html
+        assert 'name="csrf_token"' in html
+
+    def test_upload_recusa_arquivo_que_nao_e_imagem(self, auth_client, app, tournament):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        falso = (io.BytesIO(b"<script>alert(1)</script>"), "logo.png")
+        resp = auth_client.post(
+            "/add_team",
+            data={"name": "Time Falso", "acronym": "TFA", "logo": falso},
+            content_type="multipart/form-data",
+        )
+        assert "não é uma imagem válida".encode() in resp.data
+        with app.app_context():
+            assert not Team.query.filter_by(name="Time Falso").first()
+
+    def test_upload_aceita_png_valido(self, auth_client, app, tournament, tmp_path, monkeypatch):
+        monkeypatch.setattr(app, "root_path", str(tmp_path))
+        buf = io.BytesIO()
+        Image.new("RGB", (10, 10), "red").save(buf, format="PNG")
+        buf.seek(0)
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post(
+            "/add_team",
+            data={"name": "Time Real", "acronym": "TRE", "logo": (buf, "logo.png")},
+            content_type="multipart/form-data",
+        )
+        with app.app_context():
+            assert Team.query.filter_by(name="Time Real").first().logo_filename == "time_real.jpg"
 
 
 class TestSaude:

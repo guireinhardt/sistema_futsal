@@ -8,9 +8,7 @@
     <header class="site-header">
         <h1>Lista de Jogos</h1>
         <a href="{{ url_for('index') }}" class="btn btn-primary voltar">Voltar</a>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-light voltar">Sair</a>
-        {% else %}
+        {% if not current_user.is_authenticated %}
             <a href="{{ url_for('login') }}" class="btn btn-outline-light voltar">Login</a>
         {% endif %}
     </header>

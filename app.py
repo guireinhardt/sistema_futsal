@@ -14,8 +14,13 @@ from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
+from PIL import Image
 from sqlalchemy import func
 from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
 
 from models import db, Tournament, Team, Player, Match, PlayerMatchStat
 from forms import TournamentForm, TeamForm, PlayerForm, MatchForm, LoginForm
@@ -35,12 +40,36 @@ from services.standingsService import (
 
 load_dotenv()
 
+cloudinary_url = os.environ.get("CLOUDINARY_URL")
+if cloudinary_url:
+    # O SDK lê CLOUDINARY_URL quando é importado, antes do load_dotenv(); relê aqui.
+    cloudinary.reset_config()
+    cloudinary.config(secure=True)
+
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-insecure-key-change-me")
 app.config["DEBUG"] = os.environ.get("DEBUG", "False").lower() == "true"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL", "sqlite:///football.db"
-)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+# Sem SECRET_KEY própria, qualquer um que conheça a chave padrão consegue forjar
+# o cookie de sessão do admin.
+if not app.config["SECRET_KEY"]:
+    if not app.config["DEBUG"]:
+        raise RuntimeError("SECRET_KEY não configurada. Defina-a no .env (veja .env.example).")
+    app.config["SECRET_KEY"] = "dev-insecure-key-change-me"
+
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = os.environ.get(
+    "SESSION_COOKIE_SECURE", str(not app.config["DEBUG"])
+).lower() == "true"
+
+# O Render fica atrás de um proxy: sem isso, todo acesso parece vir do mesmo IP
+# (o rate limit do login travaria para todo mundo junto) e o app não sabe que é HTTPS.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+database_url = os.environ.get("DATABASE_URL", "sqlite:///football.db")
+# Render/Heroku entregam "postgres://", que o SQLAlchemy 2.x não aceita.
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # pool_pre_ping evita erros quando o Postgres gerenciado (ex: Neon) suspende a
 # conexão por inatividade; pool_recycle descarta conexões antes que o servidor
@@ -108,20 +137,38 @@ def login():
         if valid_user and valid_pass:
             login_user(AdminUser())
             flash("Login realizado com sucesso!", "success")
-            next_page = request.args.get("next")
-            if not next_page or urlparse(next_page).netloc:
+            next_page = request.args.get("next", "")
+            # Só caminhos internos: "//site" e "/\site" levam o navegador para outro domínio.
+            if (
+                not next_page.startswith("/")
+                or next_page.startswith("//")
+                or "\\" in next_page
+                or urlparse(next_page).netloc
+            ):
                 next_page = url_for("index")
             return redirect(next_page)
         flash("Usuário ou senha inválidos.", "danger")
     return render_template("login.html", form=form)
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()
     flash("Você saiu da área administrativa.", "success")
     return redirect(url_for("index"))
+
+
+@app.after_request
+def security_headers(response):
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if app.config["SESSION_COOKIE_SECURE"]:
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+    return response
 
 
 @app.route("/healthz")
@@ -159,12 +206,21 @@ def get_active_tournament():
     return Tournament.query.order_by(Tournament.created_at.desc()).first()
 
 
+def get_logo_url(logo_filename):
+    """Resolve URL do logo (local ou Cloudinary)."""
+    if not logo_filename:
+        return None
+    if logo_filename.startswith(("http://", "https://")):
+        return logo_filename
+    return url_for("static", filename=f"logos/{logo_filename}")
+
+
 @app.context_processor
 def inject_tournament():
     """Disponibiliza active_tournament e tournament_logo em todos os templates."""
     t = get_active_tournament()
-    logo = t.logo_filename if t and t.logo_filename else None
-    return {"active_tournament": t, "tournament_logo": logo}
+    logo = get_logo_url(t.logo_filename) if t and t.logo_filename else None
+    return {"active_tournament": t, "tournament_logo": logo, "get_logo_url": get_logo_url}
 
 
 def require_tournament():
@@ -208,10 +264,10 @@ def index():
     return render_template("index.html", tournaments=tournaments, stats=stats)
 
 
-def _save_logo_tournament(file_storage, tournament_name):
-    """Valida e salva o logo do campeonato. Retorna filename ou None."""
+def _validate_logo(file_storage):
+    """Retorna False se não houve upload; lança ValueError se o arquivo for inválido."""
     if not file_storage or file_storage.filename == "":
-        return None
+        return False
     ext = file_storage.filename.rsplit(".", 1)[-1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise ValueError("Formato inválido. Use JPG ou PNG.")
@@ -220,13 +276,47 @@ def _save_logo_tournament(file_storage, tournament_name):
     file_storage.seek(0)
     if size > MAX_LOGO_SIZE:
         raise ValueError("Arquivo muito grande. Máximo permitido: 2 MB.")
-    safe_name = tournament_name.strip().lower().replace(" ", "_")
-    safe_name = unidecode(safe_name)
-    filename = f"tournament_{safe_name}.jpg"
-    logos_dir = os.path.join(app.root_path, "static", "logos")
-    os.makedirs(logos_dir, exist_ok=True)
-    file_storage.save(os.path.join(logos_dir, filename))
-    return filename
+    # A extensão é escolhida por quem envia; o conteúdo precisa ser imagem de verdade.
+    try:
+        with Image.open(file_storage.stream) as img:
+            img.verify()
+            real_format = img.format
+    except Exception:
+        raise ValueError("O arquivo não é uma imagem válida.")
+    finally:
+        file_storage.seek(0)
+    if real_format not in ("JPEG", "PNG"):
+        raise ValueError("Formato inválido. Use JPG ou PNG.")
+    return True
+
+
+def _store_logo(file_storage, local_filename, folder):
+    """Salva em static/logos (dev) ou no Cloudinary (produção). Retorna o valor para o banco."""
+    if not cloudinary_url:
+        logos_dir = os.path.join(app.root_path, "static", "logos")
+        os.makedirs(logos_dir, exist_ok=True)
+        file_storage.save(os.path.join(logos_dir, local_filename))
+        return local_filename
+    try:
+        result = cloudinary.uploader.upload(
+            file_storage,
+            folder=folder,
+            public_id=local_filename.rsplit(".", 1)[0],
+            overwrite=True,
+            resource_type="image",
+        )
+    except Exception:
+        app.logger.exception("Falha no upload para o Cloudinary")
+        raise ValueError("Não foi possível enviar a imagem. Tente novamente.")
+    return result["secure_url"]
+
+
+def _save_logo_tournament(file_storage, tournament_name):
+    """Valida e salva o logo do campeonato. Retorna filename/URL ou None."""
+    if not _validate_logo(file_storage):
+        return None
+    name = secure_filename(unidecode(tournament_name.strip().lower())) or "campeonato"
+    return _store_logo(file_storage, f"tournament_{name}.jpg", "futsal/tournaments")
 
 
 @app.route("/tournament/new", methods=["GET", "POST"])
@@ -281,22 +371,11 @@ MAX_LOGO_SIZE = 2 * 1024 * 1024  # 2 MB
 
 
 def _save_logo(file_storage, team_name):
-    """Valida e salva o logo. Retorna filename ou None. Lança ValueError se inválido."""
-    if not file_storage or file_storage.filename == "":
+    """Valida e salva o logo do time. Retorna filename/URL ou None. Lança ValueError se inválido."""
+    if not _validate_logo(file_storage):
         return None
-    ext = file_storage.filename.rsplit(".", 1)[-1].lower()
-    if ext not in ALLOWED_EXTENSIONS:
-        raise ValueError("Formato inválido. Use JPG ou PNG.")
-    file_storage.seek(0, 2)
-    size = file_storage.tell()
-    file_storage.seek(0)
-    if size > MAX_LOGO_SIZE:
-        raise ValueError("Arquivo muito grande. Máximo permitido: 2 MB.")
-    filename = build_logo_filename(team_name)
-    logos_dir = os.path.join(app.root_path, "static", "logos")
-    os.makedirs(logos_dir, exist_ok=True)
-    file_storage.save(os.path.join(logos_dir, filename))
-    return filename
+    filename = secure_filename(build_logo_filename(team_name)) or "time.jpg"
+    return _store_logo(file_storage, filename, "futsal/teams")
 
 
 # Teams

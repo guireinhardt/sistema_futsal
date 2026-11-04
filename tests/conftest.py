@@ -8,6 +8,9 @@ from werkzeug.security import generate_password_hash
 
 os.environ.setdefault("SECRET_KEY", "test-key")
 os.environ.setdefault("DEBUG", "False")
+os.environ.setdefault("SESSION_COOKIE_SECURE", "False")
+# Força storage local: sem isso, um CLOUDINARY_URL no .env faria os testes subirem imagens de verdade.
+os.environ["CLOUDINARY_URL"] = ""
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("ADMIN_USERNAME", "admin")
 os.environ.setdefault("ADMIN_PASSWORD_HASH", generate_password_hash("test-password"))

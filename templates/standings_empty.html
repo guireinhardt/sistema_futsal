@@ -14,7 +14,7 @@
         <h1 class="titulo">Tabela de Classificação</h1>
         <div class="mt-1" style="font-size:0.8rem;">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}">Sair da área administrativa</a>
+                {% include "_logout_form.html" %}
             {% else %}
                 <a href="{{ url_for('login') }}">Login do organizador</a>
             {% endif %}
