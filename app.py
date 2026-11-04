@@ -66,9 +66,12 @@ app.config["SESSION_COOKIE_SECURE"] = os.environ.get(
 # (o rate limit do login travaria para todo mundo junto) e o app não sabe que é HTTPS.
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 database_url = os.environ.get("DATABASE_URL", "sqlite:///football.db")
-# Render/Heroku entregam "postgres://", que o SQLAlchemy 2.x não aceita.
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+# Render/Heroku entregam "postgres://", que o SQLAlchemy 2.x não aceita, e o
+# SQLAlchemy 2.1 trocou o driver padrão para psycopg 3: fixa o psycopg2 instalado.
+for prefixo in ("postgres://", "postgresql://"):
+    if database_url.startswith(prefixo):
+        database_url = "postgresql+psycopg2://" + database_url[len(prefixo):]
+        break
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # pool_pre_ping evita erros quando o Postgres gerenciado (ex: Neon) suspende a
