@@ -17,6 +17,12 @@
     <!-- Layout com uma tabela compacta -->
     <div class="container py-5">
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="mensagem mensagem-{{ category }}" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+
         <!-- Fase de Grupos -->
         <div class="fase-container">
             <h2 class="fase-titulo">Fase de Grupos</h2>
@@ -42,7 +48,7 @@
                             </td>
                             <td class="score">
                                 {% if match.score_a is not none %}
-                                    <span class="gols">{{ match.score_a }}</span>
+                                    <span class="gols">{{ match.score_a }}</span>{% if match.penalties_a is not none %}<small class="penaltis">pên. {{ match.penalties_a }}</small>{% endif %}
                                 {% else %}
                                     <span class="gols aguardando">Aguardando Resultado</span>
                                 {% endif %}
@@ -55,7 +61,7 @@
                             </td>
                             <td class="score">
                                 {% if match.score_b is not none %}
-                                    <span class="gols">{{ match.score_b }}</span>
+                                    <span class="gols">{{ match.score_b }}</span>{% if match.penalties_b is not none %}<small class="penaltis">pên. {{ match.penalties_b }}</small>{% endif %}
                                 {% else %}
                                     <span class="gols aguardando">Aguardando Resultado</span>
                                 {% endif %}
@@ -98,7 +104,7 @@
                             </td>
                             <td class="score">
                                 {% if match.score_a is not none %}
-                                    <span class="gols">{{ match.score_a }}</span>
+                                    <span class="gols">{{ match.score_a }}</span>{% if match.penalties_a is not none %}<small class="penaltis">pên. {{ match.penalties_a }}</small>{% endif %}
                                 {% else %}
                                     <span class="gols aguardando">Aguardando Resultado</span>
                                 {% endif %}
@@ -111,7 +117,7 @@
                             </td>
                             <td class="score">
                                 {% if match.score_b is not none %}
-                                    <span class="gols">{{ match.score_b }}</span>
+                                    <span class="gols">{{ match.score_b }}</span>{% if match.penalties_b is not none %}<small class="penaltis">pên. {{ match.penalties_b }}</small>{% endif %}
                                 {% else %}
                                     <span class="gols aguardando">Aguardando Resultado</span>
                                 {% endif %}
@@ -154,7 +160,7 @@
                             </td>
                             <td class="score">
                                 {% if final_match.score_a is not none %}
-                                    <span class="gols">{{ final_match.score_a }}</span>
+                                    <span class="gols">{{ final_match.score_a }}</span>{% if final_match.penalties_a is not none %}<small class="penaltis">pên. {{ final_match.penalties_a }}</small>{% endif %}
                                 {% else %}
                                     <span class="gols aguardando">Aguardando Resultado</span>
                                 {% endif %}
@@ -167,7 +173,7 @@
                             </td>
                             <td class="score">
                                 {% if final_match.score_b is not none %}
-                                    <span class="gols">{{ final_match.score_b }}</span>
+                                    <span class="gols">{{ final_match.score_b }}</span>{% if final_match.penalties_b is not none %}<small class="penaltis">pên. {{ final_match.penalties_b }}</small>{% endif %}
                                 {% else %}
                                     <span class="gols aguardando">Aguardando Resultado</span>
                                 {% endif %}

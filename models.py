@@ -87,8 +87,11 @@ class Match(db.Model):
     team_b_id = db.Column(db.Integer, db.ForeignKey("teams.id"), nullable=False)
     score_a = db.Column(db.Integer, nullable=True)
     score_b = db.Column(db.Integer, nullable=True)
+    # Só em jogo eliminatório que termina empatado.
+    penalties_a = db.Column(db.Integer, nullable=True)
+    penalties_b = db.Column(db.Integer, nullable=True)
     phase = db.Column(db.String(50), nullable=False)
-    # phase: 'fase de grupos' | 'semi-final' | 'final'
+    # phase: 'fase de grupos' | 'semi-final' | 'final' | '3º-lugar'
 
     tournament = db.relationship("Tournament", back_populates="matches")
     team_a = db.relationship(
@@ -103,6 +106,10 @@ class Match(db.Model):
         return self.score_a is not None and self.score_b is not None
 
     @property
+    def is_knockout(self):
+        return self.phase != "fase de grupos"
+
+    @property
     def winner(self):
         if not self.is_finished:
             return None
@@ -110,7 +117,13 @@ class Match(db.Model):
             return self.team_a
         if self.score_b > self.score_a:
             return self.team_b
-        return None  # empate
+        if self.penalties_a is None or self.penalties_b is None:
+            return None  # empate
+        if self.penalties_a > self.penalties_b:
+            return self.team_a
+        if self.penalties_b > self.penalties_a:
+            return self.team_b
+        return None
 
     def __repr__(self):
         return f"<Match {self.team_a.name} vs {self.team_b.name}>"

@@ -4,95 +4,199 @@
   <meta charset="utf-8">
   <title>Editar Partida</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="../static/css/edit_match.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_match.css') }}">
 </head>
 <body>
 
-  <!-- Cabeçalho fixo com botão "Voltar" à direita -->
+  {% set nomes_fase = {
+    'fase de grupos': 'Fase de Grupos',
+    'semi-final': 'Semi-final',
+    'final': 'Final',
+    '3º-lugar': 'Disputa de 3º lugar'
+  } %}
+  {% set nomes_posicao = {'goleiro': 'Goleiro', 'fixo': 'Fixo', 'ala': 'Ala', 'pivo': 'Pivô'} %}
+
+  {% macro numero(nome, valor) %}
+    <div class="stepper">
+      <button type="button" class="step" data-delta="-1" tabindex="-1" aria-label="Diminuir">−</button>
+      <input type="number" min="0" inputmode="numeric" name="{{ nome }}" value="{{ request.form.get(nome, valor) }}">
+      <button type="button" class="step" data-delta="1" tabindex="-1" aria-label="Aumentar">+</button>
+    </div>
+  {% endmacro %}
+
+  {% macro sumula(lado, time, jogadores) %}
+    <div class="col">
+      <h3>{{ time.name }}</h3>
+      <div class="tabela-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Jogador</th>
+              <th>Gols</th>
+              <th>Defesas</th>
+              <th>Assist.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in jogadores %}
+              <tr>
+                <td class="jogador">
+                  <span class="camisa">#{{ p.shirt_number }}</span> {{ p.name }}
+                  <small class="posicao">{{ nomes_posicao.get(p.position, p.position) }}</small>
+                </td>
+                <td>{{ numero('goals_' ~ lado ~ '_' ~ p.id, stats_by_player.get(p.id, 0)) }}</td>
+                <td{% if p.position == 'goleiro' %} class="destaque"{% endif %}>{{ numero('saves_' ~ lado ~ '_' ~ p.id, stats_by_player.get(p.id ~ '_saves', 0)) }}</td>
+                <td>{{ numero('assists_' ~ lado ~ '_' ~ p.id, stats_by_player.get(p.id ~ '_assists', 0)) }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4" class="muted">Sem jogadores cadastrados no {{ time.name }}.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endmacro %}
+
   <header class="header">
-    <h1>Editar: {{ match.team_a.name }} x {{ match.team_b.name }}</h1>
+    <div class="header-titulo">
+      <h1>Lançar resultado</h1>
+      <span class="fase">{{ nomes_fase.get(match.phase, match.phase) }}</span>
+    </div>
     <a href="{{ url_for('matches') }}" class="btn voltar-btn">Voltar</a>
   </header>
 
-  <form method="POST" class="match-form">
+  <form method="POST" class="match-form" id="form-partida">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <!-- Placar -->
-    <div class="cols">
-      <div class="col">
-        <label><strong>{{ match.team_a.name }}</strong></label><br>
-        <label>Placar {{ match.team_a.name }}:
-          <input type="number" name="score_a" min="0" value="{{ match.score_a or 0 }}" required>
-        </label>
-      </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alerta alerta-{{ category }}" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
 
-      <div class="col">
-        <label><strong>{{ match.team_b.name }}</strong></label><br>
-        <label>Placar {{ match.team_b.name }}:
-          <input type="number" name="score_b" min="0" value="{{ match.score_b or 0 }}" required>
-        </label>
+    <!-- Placar -->
+    <section class="placar">
+      <div class="placar-time">
+        {% if match.team_a.logo_filename %}
+          <img src="{{ get_logo_url(match.team_a.logo_filename) }}" alt="">
+        {% endif %}
+        <strong>{{ match.team_a.name }}</strong>
       </div>
-    </div>
+      <div class="placar-numeros">
+        <input type="number" min="0" inputmode="numeric" name="score_a" id="score_a" required
+               aria-label="Placar {{ match.team_a.name }}"
+               value="{{ request.form.get('score_a', match.score_a if match.score_a is not none else '') }}">
+        <span class="placar-x">x</span>
+        <input type="number" min="0" inputmode="numeric" name="score_b" id="score_b" required
+               aria-label="Placar {{ match.team_b.name }}"
+               value="{{ request.form.get('score_b', match.score_b if match.score_b is not none else '') }}">
+      </div>
+      <div class="placar-time placar-time--b">
+        <strong>{{ match.team_b.name }}</strong>
+        {% if match.team_b.logo_filename %}
+          <img src="{{ get_logo_url(match.team_b.logo_filename) }}" alt="">
+        {% endif %}
+      </div>
+    </section>
+
+    {% if match.is_knockout %}
+    <section class="penaltis" id="penaltis" hidden>
+      <span class="penaltis-titulo">Empate: informe os pênaltis</span>
+      <div class="placar-numeros">
+        <input type="number" min="0" inputmode="numeric" name="penalties_a" id="penalties_a"
+               aria-label="Pênaltis {{ match.team_a.name }}"
+               value="{{ request.form.get('penalties_a', match.penalties_a if match.penalties_a is not none else '') }}">
+        <span class="placar-x">x</span>
+        <input type="number" min="0" inputmode="numeric" name="penalties_b" id="penalties_b"
+               aria-label="Pênaltis {{ match.team_b.name }}"
+               value="{{ request.form.get('penalties_b', match.penalties_b if match.penalties_b is not none else '') }}">
+      </div>
+    </section>
+    {% endif %}
+
+    <p class="aviso" id="aviso_a" data-time="{{ match.team_a.name }}" hidden></p>
+    <p class="aviso" id="aviso_b" data-time="{{ match.team_b.name }}" hidden></p>
 
     <!-- Estatísticas dos jogadores -->
     <div class="cols">
-      <div class="col">
-        <h3>Estatísticas — {{ match.team_a.name }}</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Jogador</th>
-              <th>Gols</th>
-              <th>Defesas</th>
-              <th>Assistências</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in players_a %}
-              <tr>
-                <td>{{ p.name }} ({{ p.shirt_number }})</td>  <!-- Exibindo o número da camiseta -->
-                <td><input type="number" min="0" name="goals_a_{{ p.id }}" value="{{ stats_by_player.get(p.id, 0) }}"></td>
-                <td><input type="number" min="0" name="saves_a_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_saves', 0) }}"></td>
-                <td><input type="number" min="0" name="assists_a_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_assists', 0) }}"></td>
-              </tr>
-            {% else %}
-              <tr><td colspan="4" class="muted">Sem jogadores cadastrados no {{ match.team_a.name }}.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="col">
-        <h3>Estatísticas — {{ match.team_b.name }}</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Jogador</th>
-              <th>Gols</th>
-              <th>Defesas</th>
-              <th>Assistências</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in players_b %}
-              <tr>
-                <td>{{ p.name }} ({{ p.shirt_number }})</td>  <!-- Exibindo o número da camiseta -->
-                <td><input type="number" min="0" name="goals_b_{{ p.id }}" value="{{ stats_by_player.get(p.id, 0) }}"></td>
-                <td><input type="number" min="0" name="saves_b_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_saves', 0) }}"></td>
-                <td><input type="number" min="0" name="assists_b_{{ p.id }}" value="{{ stats_by_player.get(p.id ~ '_assists', 0) }}"></td>
-              </tr>
-            {% else %}
-              <tr><td colspan="4" class="muted">Sem jogadores cadastrados no {{ match.team_b.name }}.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      {{ sumula('a', match.team_a, players_a) }}
+      {{ sumula('b', match.team_b, players_b) }}
     </div>
 
     <div class="actions">
+      {% if pode_limpar %}
+        <button type="submit" name="acao" value="limpar" class="btn-limpar" id="btn-limpar" formnovalidate>Limpar resultado</button>
+      {% endif %}
       <input type="submit" class="btn btn-primary" value="Salvar">
     </div>
   </form>
 
+  <script>
+    (function () {
+      const form = document.getElementById('form-partida');
+      const penaltis = document.getElementById('penaltis');
+      const campo = nome => document.getElementById(nome);
+      const gols = lado => [...form.querySelectorAll(`input[name^="goals_${lado}_"]`)];
+      const soma = lado => gols(lado).reduce((total, el) => total + (Number(el.value) || 0), 0);
+
+      // Placar salvo que já difere dos gols (gol contra) não é recalculado.
+      const manual = {};
+      ['a', 'b'].forEach(lado => {
+        const valor = campo(`score_${lado}`).value;
+        manual[lado] = valor !== '' && Number(valor) !== soma(lado);
+      });
+
+      function atualizar() {
+        ['a', 'b'].forEach(lado => {
+          const placar = campo(`score_${lado}`).value;
+          const aviso = campo(`aviso_${lado}`);
+          const diferente = placar !== '' && Number(placar) !== soma(lado);
+          aviso.hidden = !diferente;
+          aviso.textContent = diferente
+            ? `${aviso.dataset.time}: placar ${placar}, mas ${soma(lado)} gol(s) lançado(s) nos jogadores.`
+            : '';
+        });
+
+        if (penaltis) {
+          const a = campo('score_a').value, b = campo('score_b').value;
+          const empate = a !== '' && a === b;
+          penaltis.hidden = !empate;
+          campo('penalties_a').required = empate;
+          campo('penalties_b').required = empate;
+        }
+      }
+
+      ['a', 'b'].forEach(lado => {
+        campo(`score_${lado}`).addEventListener('input', () => { manual[lado] = true; });
+        gols(lado).forEach(el => el.addEventListener('input', () => {
+          if (!manual[lado]) campo(`score_${lado}`).value = soma(lado);
+        }));
+      });
+
+      form.querySelectorAll('.step').forEach(botao => botao.addEventListener('click', () => {
+        const input = botao.parentElement.querySelector('input');
+        input.value = Math.max(0, (Number(input.value) || 0) + Number(botao.dataset.delta));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }));
+
+      // Selecionar ao focar: digitar substitui o 0 sem precisar apagar.
+      form.querySelectorAll('input[type="number"]').forEach(el =>
+        el.addEventListener('focus', () => requestAnimationFrame(() => el.select())));
+
+      let alterado = false;
+      form.addEventListener('input', () => { alterado = true; atualizar(); });
+      form.addEventListener('submit', () => { alterado = false; });
+      window.addEventListener('beforeunload', evento => {
+        if (alterado) { evento.preventDefault(); evento.returnValue = ''; }
+      });
+
+      const limpar = document.getElementById('btn-limpar');
+      if (limpar) limpar.addEventListener('click', evento => {
+        if (!confirm('Limpar o placar e as estatísticas deste jogo?')) evento.preventDefault();
+      });
+
+      atualizar();
+    })();
+  </script>
 </body>
 </html>

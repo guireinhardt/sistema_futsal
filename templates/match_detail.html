@@ -41,6 +41,9 @@
             </div>
             {% if match.is_finished %}
                 <div class="placar">{{ match.score_a }} — {{ match.score_b }}</div>
+                {% if match.penalties_a is not none %}
+                    <div style="font-size:0.9rem; opacity:0.8;">Pênaltis: {{ match.penalties_a }} — {{ match.penalties_b }}</div>
+                {% endif %}
                 {% if match.winner %}
                     <div class="vencedor">🏅 Vencedor: {{ match.winner.name }}</div>
                 {% else %}

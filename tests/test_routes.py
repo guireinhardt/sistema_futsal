@@ -1,6 +1,7 @@
 """Testes de integração das rotas HTTP."""
 
 import io
+import re
 
 import pytest
 from PIL import Image
@@ -429,6 +430,149 @@ class TestRotasPartidas:
                 ).first()
                 is None
             )
+
+    def test_edit_match_placar_em_branco_nao_finaliza(self, auth_client, app, pending_match):
+        resp = auth_client.post(
+            f"/edit_match/{pending_match.id}", data={"score_a": "", "score_b": "2"}
+        )
+        assert "Informe o placar".encode() in resp.data
+        assert b'value="2"' in resp.data  # mantém o que foi digitado
+        with app.app_context():
+            assert not db.session.get(Match, pending_match.id).is_finished
+
+    def test_edit_match_jogo_pendente_abre_sem_zero_no_placar(self, auth_client, pending_match):
+        html = auth_client.get(f"/edit_match/{pending_match.id}").data.decode()
+        assert re.search(r'name="score_a"[^>]*value=""', html)
+
+    @pytest.mark.parametrize("valor", ["-1", "abc"])
+    def test_edit_match_recusa_estatistica_invalida(self, auth_client, app, pending_match, player_a, valor):
+        resp = auth_client.post(
+            f"/edit_match/{pending_match.id}",
+            data={"score_a": 1, "score_b": 0, f"goals_a_{player_a.id}": valor},
+        )
+        assert "números inteiros".encode() in resp.data
+        with app.app_context():
+            assert not db.session.get(Match, pending_match.id).is_finished
+
+    def test_edit_match_avisa_gols_diferentes_do_placar(self, auth_client, pending_match, player_a, player_b):
+        resp = auth_client.post(
+            f"/edit_match/{pending_match.id}",
+            data={"score_a": 3, "score_b": 0, f"goals_a_{player_a.id}": 2},
+            follow_redirects=True,
+        )
+        assert "placar 3, mas 2 gol(s)".encode() in resp.data
+
+    def test_edit_match_sem_aviso_quando_gols_batem(self, auth_client, pending_match, player_a, player_b):
+        resp = auth_client.post(
+            f"/edit_match/{pending_match.id}",
+            data={"score_a": 2, "score_b": 0, f"goals_a_{player_a.id}": 2},
+            follow_redirects=True,
+        )
+        assert "Atenção".encode() not in resp.data
+        assert "Partida e estatísticas salvas".encode() in resp.data
+
+    def test_edit_match_limpar_resultado(self, auth_client, app, finished_match, player_a):
+        with app.app_context():
+            db.session.add(PlayerMatchStat(
+                match_id=finished_match.id, player_id=player_a.id,
+                team_id=player_a.team_id, goals=3,
+            ))
+            db.session.commit()
+        auth_client.post(f"/edit_match/{finished_match.id}", data={"acao": "limpar"})
+        with app.app_context():
+            assert not db.session.get(Match, finished_match.id).is_finished
+            assert PlayerMatchStat.query.filter_by(match_id=finished_match.id).count() == 0
+
+    def test_edit_match_nao_limpa_se_fase_seguinte_existe(self, auth_client, app, finished_match, tournament, team_a, team_b):
+        with app.app_context():
+            db.session.add(Match(
+                tournament_id=tournament.id, team_a_id=team_a.id,
+                team_b_id=team_b.id, phase="semi-final",
+            ))
+            db.session.commit()
+        assert b'id="btn-limpar"' not in auth_client.get(f"/edit_match/{finished_match.id}").data
+        resp = auth_client.post(f"/edit_match/{finished_match.id}", data={"acao": "limpar"})
+        assert "não pode ser limpo".encode() in resp.data
+        with app.app_context():
+            assert db.session.get(Match, finished_match.id).is_finished
+
+    def test_edit_match_ordena_goleiro_primeiro(self, auth_client, app, pending_match, team_a):
+        with app.app_context():
+            db.session.add_all([
+                Player(name="Aaa Ala", team_id=team_a.id, position="ala", shirt_number=2),
+                Player(name="Zzz Goleiro", team_id=team_a.id, position="goleiro", shirt_number=1),
+            ])
+            db.session.commit()
+        html = auth_client.get(f"/edit_match/{pending_match.id}").data.decode()
+        assert html.index("Zzz Goleiro") < html.index("Aaa Ala")
+        assert "#1</span> Zzz Goleiro" in html
+
+    def test_edit_match_mostra_fase(self, auth_client, pending_match):
+        assert b"Fase de Grupos" in auth_client.get(f"/edit_match/{pending_match.id}").data
+
+    def _semi(self, tournament, team_a, team_b):
+        m = Match(tournament_id=tournament.id, team_a_id=team_a.id,
+                  team_b_id=team_b.id, phase="semi-final")
+        db.session.add(m)
+        db.session.commit()
+        return m.id
+
+    def test_empate_eliminatorio_exige_penaltis(self, auth_client, app, tournament, team_a, team_b):
+        mid = self._semi(tournament, team_a, team_b)
+        resp = auth_client.post(f"/edit_match/{mid}", data={"score_a": 1, "score_b": 1})
+        assert "informe os pênaltis".encode() in resp.data
+        with app.app_context():
+            assert not db.session.get(Match, mid).is_finished
+
+    def test_penaltis_empatados_sao_recusados(self, auth_client, app, tournament, team_a, team_b):
+        mid = self._semi(tournament, team_a, team_b)
+        resp = auth_client.post(
+            f"/edit_match/{mid}",
+            data={"score_a": 1, "score_b": 1, "penalties_a": 3, "penalties_b": 3},
+        )
+        assert "informe os pênaltis".encode() in resp.data
+
+    def test_penaltis_definem_vencedor(self, auth_client, app, tournament, team_a, team_b):
+        mid = self._semi(tournament, team_a, team_b)
+        auth_client.post(
+            f"/edit_match/{mid}",
+            data={"score_a": 1, "score_b": 1, "penalties_a": 3, "penalties_b": 4},
+        )
+        with app.app_context():
+            assert db.session.get(Match, mid).winner.id == team_b.id
+        assert "pên. 4".encode() in auth_client.get("/matches").data
+
+    def test_penaltis_somem_quando_nao_ha_empate(self, auth_client, app, tournament, team_a, team_b):
+        mid = self._semi(tournament, team_a, team_b)
+        auth_client.post(
+            f"/edit_match/{mid}",
+            data={"score_a": 2, "score_b": 1, "penalties_a": 3, "penalties_b": 4},
+        )
+        with app.app_context():
+            m = db.session.get(Match, mid)
+            assert m.penalties_a is None and m.winner.id == team_a.id
+
+    def test_fase_de_grupos_aceita_empate_sem_penaltis(self, auth_client, app, pending_match):
+        auth_client.post(f"/edit_match/{pending_match.id}", data={"score_a": 1, "score_b": 1})
+        with app.app_context():
+            m = db.session.get(Match, pending_match.id)
+            assert m.is_finished and m.winner is None
+
+    def test_final_gerada_apos_semi_nos_penaltis(self, auth_client, app, tournament, four_teams):
+        ta, tb, tc, td = four_teams
+        with app.app_context():
+            db.session.add_all([
+                Match(tournament_id=tournament.id, team_a_id=ta.id, team_b_id=td.id,
+                      phase="semi-final", score_a=2, score_b=2, penalties_a=5, penalties_b=4),
+                Match(tournament_id=tournament.id, team_a_id=tb.id, team_b_id=tc.id,
+                      phase="semi-final", score_a=0, score_b=1),
+            ])
+            db.session.commit()
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_final")
+        with app.app_context():
+            final = Match.query.filter_by(tournament_id=tournament.id, phase="final").one()
+            assert {final.team_a_id, final.team_b_id} == {ta.id, tc.id}
 
     def test_edit_match_404(self, auth_client):
         assert auth_client.get("/edit_match/99999").status_code == 404

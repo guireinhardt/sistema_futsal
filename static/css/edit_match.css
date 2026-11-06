@@ -10,28 +10,45 @@ body {
     font-family: 'Poppins', sans-serif;
     background-color: #f4f7fb;
     color: #333;
-    padding-top: 70px; /* Espaço para o cabeçalho fixo */
 }
 
+[hidden] {
+    display: none !important;
+}
+
+/* Cabeçalho */
 header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    width: 100%;
     background-color: #fff;
-    padding: 20px 40px;
+    padding: 14px 40px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
     z-index: 100;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    gap: 16px;
+}
+
+.header-titulo {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 14px;
 }
 
 header h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     color: #060a6c;
-    text-align: center;
-    flex: 1; /* Centraliza o título */
+}
+
+.fase {
+    padding: 3px 12px;
+    border-radius: 999px;
+    background-color: #060a6c;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
 }
 
 .voltar-btn {
@@ -41,40 +58,158 @@ header h1 {
     text-decoration: none;
     border-radius: 8px;
     font-weight: bold;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    position: absolute;
-    right: 40px;
+    transition: background-color 0.3s ease;
 }
 
 .voltar-btn:hover {
     background-color: #c13d34;
-    transform: scale(1.05);
 }
 
 .match-form {
-    margin-top: 120px; /* Espaço abaixo do cabeçalho fixo */
+    max-width: 1300px;
+    margin: 24px auto;
     background-color: #fff;
-    padding: 30px;
+    padding: 30px 30px 0;
     border-radius: 12px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Mensagens */
+.alerta {
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+}
+
+.alerta-danger {
+    background-color: #fdecea;
+    color: #af1411;
+}
+
+.alerta-success {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+.alerta-warning,
+.aviso {
+    background-color: #fff8e1;
+    color: #7a5b00;
+}
+
+.aviso {
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Placar */
+.placar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background-color: #f4f7fb;
+}
+
+.placar-time {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    font-size: 1.25rem;
+    color: #060a6c;
+}
+
+.placar-time--b {
+    justify-content: flex-start;
+}
+
+.placar-time img {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    object-fit: contain;
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.placar-numeros {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.placar-numeros input {
+    width: 76px;
+    height: 64px;
+    border: 2px solid #060a6c;
+    border-radius: 10px;
+    background-color: #fff;
+    color: #060a6c;
+    font-family: inherit;
+    font-size: 2rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.placar-x {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #777;
+}
+
+.penaltis {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background-color: #fff8e1;
+}
+
+.penaltis-titulo {
+    font-weight: 600;
+    color: #7a5b00;
+}
+
+.penaltis .placar-numeros input {
+    width: 60px;
+    height: 46px;
+    font-size: 1.4rem;
+}
+
+/* Súmula */
 h3 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     color: #af1411; /* Vermelho */
-    margin-bottom: 15px;
+    margin: 10px 0 12px;
 }
 
 .cols {
     display: flex;
     gap: 24px;
     flex-wrap: wrap;
-    justify-content: space-between;
 }
 
 .col {
     flex: 1;
-    min-width: 280px;
+    min-width: 0;
+    flex-basis: 480px;
+}
+
+.tabela-scroll {
+    overflow-x: auto;
 }
 
 table {
@@ -84,10 +219,10 @@ table {
 }
 
 th, td {
-    padding: 12px;
+    padding: 8px;
     text-align: center;
     border: 1px solid #ddd;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 th {
@@ -104,53 +239,212 @@ tr:nth-child(even) td {
     background-color: #ffffff;
 }
 
-input[type="number"] {
-    width: 100%;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    margin-bottom: 10px;
+td.jogador {
+    text-align: left;
 }
 
+.camisa {
+    font-weight: 600;
+    color: #060a6c;
+}
+
+.posicao {
+    display: block;
+    color: #777;
+    font-size: 0.75rem;
+}
+
+td.destaque,
+tr:nth-child(even) td.destaque {
+    background-color: #e3ecff;
+}
+
+.stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.stepper input {
+    width: 42px;
+    height: 34px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    text-align: center;
+}
+
+.step {
+    width: 28px;
+    height: 34px;
+    flex-shrink: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #eef1f7;
+    color: #060a6c;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.step:hover {
+    background-color: #dfe5f1;
+}
+
+/* Sem as setas nativas: os botões − e + fazem esse papel. */
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Barra de ações: fica visível enquanto a súmula rola */
 .actions {
+    position: sticky;
+    bottom: 0;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: 12px;
-    margin-top: 30px;
+    margin: 0 -30px;
+    padding: 14px 30px;
+    background-color: #fff;
+    border-top: 1px solid #e3e6ec;
+    border-radius: 0 0 12px 12px;
 }
 
 input[type="submit"] {
-    padding: 12px 20px;
+    min-width: 180px;
+    padding: 13px 28px;
     border-radius: 8px;
+    font-family: inherit;
+    font-size: 1.05rem;
     font-weight: 600;
     cursor: pointer;
     background-color: #060a6c; /* Azul escuro */
     color: white;
     border: none;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 input[type="submit"]:hover {
     background-color: #1a73e8;
-    transform: scale(1.05);
+}
+
+.btn-limpar {
+    margin-right: auto;
+    padding: 10px 16px;
+    border: 1px solid #af1411;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #af1411;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-limpar:hover {
+    background-color: #fdecea;
 }
 
 /* Responsividade */
 @media (max-width: 768px) {
     header {
-        padding: 15px;
+        padding: 10px 12px;
+    }
+
+    header h1 {
+        font-size: 1.1rem;
+    }
+
+    .voltar-btn {
+        padding: 8px 14px;
     }
 
     .match-form {
-        margin-top: 100px;
+        margin: 10px 0 0;
+        padding: 12px 10px 0;
+        border-radius: 0;
     }
 
-    table td, table th {
+    .placar {
+        gap: 8px;
+        padding: 12px 6px;
+    }
+
+    .placar-time,
+    .placar-time--b {
+        flex-direction: column;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    /* Na coluna, o logo do time B fica acima do nome, como no time A. */
+    .placar-time--b {
+        flex-direction: column-reverse;
+    }
+
+    .placar-time img {
+        width: 46px;
+        height: 46px;
+    }
+
+    .placar-numeros {
+        gap: 6px;
+    }
+
+    .placar-numeros input {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+
+    th, td {
+        padding: 5px 3px;
+        font-size: 13px;
+    }
+
+    .stepper {
+        gap: 2px;
+    }
+
+    .stepper input {
+        width: 30px;
+        padding: 0;
         font-size: 14px;
     }
 
-    input[type="number"] {
-        width: 100%;
+    .step {
+        width: 22px;
+    }
+
+    .col {
+        flex-basis: 100%;
+    }
+
+    .actions {
+        margin: 0 -10px;
+        padding: 10px;
+        border-radius: 0;
+    }
+
+    input[type="submit"] {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .btn-limpar {
+        margin-right: 0;
     }
 }

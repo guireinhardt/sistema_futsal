@@ -669,69 +669,145 @@ def add_match():
     return render_template("add_match.html", form=form)
 
 
+ORDEM_POSICOES = {"goleiro": 0, "fixo": 1, "ala": 2, "pivo": 3}
+
+
+def _jogadores_para_sumula(team_id):
+    """Goleiro primeiro, depois por posição e número da camisa."""
+    return sorted(
+        Player.query.filter_by(team_id=team_id).all(),
+        key=lambda p: (ORDEM_POSICOES.get(p.position, 9), p.shirt_number, p.name),
+    )
+
+
+def _numero_do_form(campo, vazio=None):
+    """Inteiro >= 0 do formulário; `vazio` se em branco; None se inválido."""
+    valor = request.form.get(campo, "").strip()
+    if not valor:
+        return vazio
+    try:
+        numero = int(valor)
+    except ValueError:
+        return None
+    return numero if numero >= 0 else None
+
+
+def _fase_seguinte_gerada(match):
+    seguintes = {"fase de grupos": ["semi-final"], "semi-final": ["final", "3º-lugar"]}
+    return (
+        Match.query.filter(
+            Match.tournament_id == match.tournament_id,
+            Match.phase.in_(seguintes.get(match.phase, [])),
+        ).count()
+        > 0
+    )
+
+
 @app.route("/edit_match/<int:match_id>", methods=["GET", "POST"])
 @login_required
 def edit_match(match_id):
     match = Match.query.get_or_404(match_id)
-    players_a = (
-        Player.query.filter_by(team_id=match.team_a_id).order_by(Player.name).all()
-    )
-    players_b = (
-        Player.query.filter_by(team_id=match.team_b_id).order_by(Player.name).all()
-    )
+    players_a = _jogadores_para_sumula(match.team_a_id)
+    players_b = _jogadores_para_sumula(match.team_b_id)
 
-    if request.method == "POST":
-        match.score_a = int(request.form.get("score_a") or 0)
-        match.score_b = int(request.form.get("score_b") or 0)
+    def tela():
+        existing = {}
+        for s in PlayerMatchStat.query.filter_by(match_id=match.id).all():
+            existing[s.player_id] = s.goals
+            existing[f"{s.player_id}_saves"] = s.saves
+            existing[f"{s.player_id}_assists"] = s.assists
+        return render_template(
+            "edit_match.html",
+            match=match,
+            players_a=players_a,
+            players_b=players_b,
+            stats_by_player=existing,
+            pode_limpar=match.is_finished and not _fase_seguinte_gerada(match),
+        )
 
-        def parse_stats(players, side):
-            return {
-                p.id: {
-                    "goals": int(request.form.get(f"goals_{side}_{p.id}", 0) or 0),
-                    "saves": int(request.form.get(f"saves_{side}_{p.id}", 0) or 0),
-                    "assists": int(request.form.get(f"assists_{side}_{p.id}", 0) or 0),
-                }
-                for p in players
-            }
+    if request.method == "GET":
+        return tela()
 
-        team_map = {p.id: match.team_a_id for p in players_a}
-        team_map.update({p.id: match.team_b_id for p in players_b})
-        all_stats = {**parse_stats(players_a, "a"), **parse_stats(players_b, "b")}
-
-        for pid, stats in all_stats.items():
-            stat = PlayerMatchStat.query.filter_by(
-                match_id=match.id, player_id=pid
-            ).first()
-            if all(v == 0 for v in stats.values()):
-                if stat:
-                    db.session.delete(stat)
-            else:
-                if not stat:
-                    stat = PlayerMatchStat(
-                        match_id=match.id, player_id=pid, team_id=team_map[pid]
-                    )
-                    db.session.add(stat)
-                stat.goals = stats["goals"]
-                stat.saves = stats["saves"]
-                stat.assists = stats["assists"]
-
+    if request.form.get("acao") == "limpar":
+        if _fase_seguinte_gerada(match):
+            flash(
+                "Este resultado já foi usado para gerar a fase seguinte "
+                "e não pode ser limpo.",
+                "danger",
+            )
+            return tela()
+        match.score_a = match.score_b = None
+        match.penalties_a = match.penalties_b = None
+        PlayerMatchStat.query.filter_by(match_id=match.id).delete()
         db.session.commit()
-        flash("Partida e estatísticas salvas!", "success")
+        flash("Resultado limpo. O jogo voltou para Aguardando Resultado.", "success")
         return redirect(url_for("matches"))
 
-    existing = {}
-    for s in PlayerMatchStat.query.filter_by(match_id=match.id).all():
-        existing[s.player_id] = s.goals
-        existing[f"{s.player_id}_saves"] = s.saves
-        existing[f"{s.player_id}_assists"] = s.assists
+    score_a = _numero_do_form("score_a")
+    score_b = _numero_do_form("score_b")
+    if score_a is None or score_b is None:
+        flash("Informe o placar dos dois times (use 0 se não houve gol).", "danger")
+        return tela()
 
-    return render_template(
-        "edit_match.html",
-        match=match,
-        players_a=players_a,
-        players_b=players_b,
-        stats_by_player=existing,
-    )
+    penalties_a = penalties_b = None
+    if match.is_knockout and score_a == score_b:
+        penalties_a = _numero_do_form("penalties_a")
+        penalties_b = _numero_do_form("penalties_b")
+        if penalties_a is None or penalties_b is None or penalties_a == penalties_b:
+            flash(
+                "Jogo eliminatório empatado: informe os pênaltis, "
+                "e um time precisa vencer.",
+                "danger",
+            )
+            return tela()
+
+    all_stats = {}
+    for players, side, team_id in (
+        (players_a, "a", match.team_a_id),
+        (players_b, "b", match.team_b_id),
+    ):
+        for p in players:
+            valores = {
+                campo: _numero_do_form(f"{campo}_{side}_{p.id}", vazio=0)
+                for campo in ("goals", "saves", "assists")
+            }
+            if None in valores.values():
+                flash("As estatísticas precisam ser números inteiros, 0 ou maiores.", "danger")
+                return tela()
+            all_stats[p.id] = (team_id, valores)
+
+    match.score_a, match.score_b = score_a, score_b
+    match.penalties_a, match.penalties_b = penalties_a, penalties_b
+
+    for pid, (team_id, stats) in all_stats.items():
+        stat = PlayerMatchStat.query.filter_by(match_id=match.id, player_id=pid).first()
+        if all(v == 0 for v in stats.values()):
+            if stat:
+                db.session.delete(stat)
+        else:
+            if not stat:
+                stat = PlayerMatchStat(match_id=match.id, player_id=pid, team_id=team_id)
+                db.session.add(stat)
+            stat.goals = stats["goals"]
+            stat.saves = stats["saves"]
+            stat.assists = stats["assists"]
+
+    db.session.commit()
+    flash("Partida e estatísticas salvas!", "success")
+
+    # Só avisa: gol contra faz o placar diferir da soma dos gols dos jogadores.
+    for team, score, players in (
+        (match.team_a, score_a, players_a),
+        (match.team_b, score_b, players_b),
+    ):
+        gols = sum(all_stats[p.id][1]["goals"] for p in players)
+        if gols != score:
+            flash(
+                f"Atenção: {team.name} tem placar {score}, "
+                f"mas {gols} gol(s) lançado(s) nos jogadores.",
+                "warning",
+            )
+    return redirect(url_for("matches"))
 
 
 @app.route("/match/<int:match_id>")
