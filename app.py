@@ -1,3 +1,4 @@
+from datetime import date
 import os
 from urllib.parse import urlparse
 from flask import Flask, flash, render_template, request, redirect, session, url_for
@@ -223,7 +224,12 @@ def inject_tournament():
     """Disponibiliza active_tournament e tournament_logo em todos os templates."""
     t = get_active_tournament()
     logo = get_logo_url(t.logo_filename) if t and t.logo_filename else None
-    return {"active_tournament": t, "tournament_logo": logo, "get_logo_url": get_logo_url}
+    return {
+        "active_tournament": t,
+        "tournament_logo": logo,
+        "get_logo_url": get_logo_url,
+        "ano_atual": date.today().year,
+    }
 
 
 def require_tournament():

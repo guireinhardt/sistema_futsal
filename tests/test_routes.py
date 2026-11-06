@@ -1,5 +1,6 @@
 """Testes de integração das rotas HTTP."""
 
+from datetime import date
 import io
 import re
 
@@ -169,6 +170,11 @@ class TestRateLimitLogin:
 
 
 class TestRotasPublicas:
+    def test_rodape_e_titulo_usam_dados_atuais(self, client, tournament):
+        html = client.get("/").data.decode()
+        assert f"&copy; {date.today().year} " in html
+        assert "<title>Copa Teste" in html
+
     def test_index(self, client):
         assert client.get("/").status_code == 200
 
