@@ -51,6 +51,15 @@
                     {% endif %}
                 </div>
 
+                <!-- Sigla -->
+                <div class="mb-3">
+                    {{ form.acronym.label(class="form-label") }}
+                    {{ form.acronym(class="form-control", placeholder="Ex: ACE, TCA") }}
+                    {% if form.acronym.errors %}
+                        <div class="text-danger small mt-1">{{ form.acronym.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
                 <!-- Logo -->
                 <div class="mb-4">
                     {{ form.logo.label(class="form-label") }}

@@ -414,6 +414,14 @@ def _save_logo(file_storage, team_name):
 # ──────────────────────────────────────────────────────────────────────────────
 
 
+def _nome_de_time_em_uso(nome, tournament_id, ignorar_id=None):
+    # Comparação no Python: o lower() do SQLite ignora acentos.
+    return any(
+        t.name.casefold() == nome.casefold() and t.id != ignorar_id
+        for t in Team.query.filter_by(tournament_id=tournament_id)
+    )
+
+
 def get_logo(team):
     """Retorna logo do banco se existir, senão gera pelo nome do time."""
     return team.logo_filename if team.logo_filename else build_logo_filename(team.name)
@@ -428,6 +436,9 @@ def add_team():
 
     form = TeamForm()
     if form.validate_on_submit():
+        if _nome_de_time_em_uso(form.name.data.strip(), active.id):
+            flash("Já existe um time com esse nome neste campeonato.", "danger")
+            return render_template("add_team.html", form=form)
         try:
             logo_filename = _save_logo(form.logo.data, form.name.data.strip())
         except ValueError as e:
@@ -457,6 +468,9 @@ def edit_team(team_id):
 
     form = TeamForm()
     if form.validate_on_submit():
+        if _nome_de_time_em_uso(form.name.data.strip(), team.tournament_id, team.id):
+            flash("Já existe um time com esse nome neste campeonato.", "danger")
+            return render_template("edit_team.html", form=form, team=team)
         try:
             if form.logo.data:
                 logo_filename = _save_logo(form.logo.data, form.name.data.strip())
@@ -471,8 +485,9 @@ def edit_team(team_id):
         flash("Time atualizado com sucesso!", "success")
         return redirect(url_for("players"))
 
-    form.name.data = team.name
-    form.acronym.data = team.acronym
+    if request.method == "GET":
+        form.name.data = team.name
+        form.acronym.data = team.acronym
     return render_template("edit_team.html", form=form, team=team)
 
 

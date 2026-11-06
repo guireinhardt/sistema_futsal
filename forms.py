@@ -7,7 +7,7 @@ from wtforms import (
     FileField,
     PasswordField,
 )
-from wtforms.validators import DataRequired, NumberRange, Optional
+from wtforms.validators import DataRequired, Length, NumberRange, Optional
 from flask_wtf.file import FileAllowed
 
 
@@ -28,8 +28,14 @@ class TournamentForm(FlaskForm):
 
 
 class TeamForm(FlaskForm):
-    name = StringField("Nome do time", validators=[DataRequired()])
-    acronym = StringField("Sigla (ex: ACE, TCA)", validators=[DataRequired()])
+    name = StringField(
+        "Nome do time",
+        validators=[DataRequired(), Length(max=50, message="Máximo de 50 caracteres.")],
+    )
+    acronym = StringField(
+        "Sigla (ex: ACE, TCA)",
+        validators=[DataRequired(), Length(max=4, message="Máximo de 4 letras.")],
+    )
     logo = FileField(
         "Logo do time (JPG ou PNG, máx. 2MB)",
         validators=[FileAllowed(["jpg", "jpeg", "png"], "Apenas JPG ou PNG.")],

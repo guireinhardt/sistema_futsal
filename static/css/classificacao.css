@@ -32,6 +32,10 @@ body {
     object-fit: contain;  /* contain preserva proporção sem cortar */
     display: block;
     margin: 0 auto;
+    border-radius: 50%;
+    padding: 6px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Mensagem de Aguardando Fase de Grupos */

@@ -228,6 +228,47 @@ class TestRotasTimes:
             assert t.name == "Time Atualizado"
             assert t.acronym == "TUA"
 
+    def test_edit_team_corrige_acento_do_proprio_nome(self, auth_client, app, team_a):
+        auth_client.post(
+            f"/edit_team/{team_a.id}",
+            data={"name": "LEÕES FC", "acronym": "LEO"},
+            content_type="multipart/form-data",
+        )
+        with app.app_context():
+            assert db.session.get(Team, team_a.id).name == "LEÕES FC"
+
+    def test_edit_team_recusa_nome_de_outro_time(self, auth_client, app, team_a, team_b):
+        resp = auth_client.post(
+            f"/edit_team/{team_a.id}",
+            data={"name": "tigres ec", "acronym": "TIG"},
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 200
+        assert "Já existe um time".encode() in resp.data
+        assert b'value="tigres ec"' in resp.data  # mantém o que foi digitado
+        with app.app_context():
+            assert db.session.get(Team, team_a.id).name == "Leões FC"
+
+    def test_edit_team_recusa_sigla_longa(self, auth_client, app, team_a):
+        resp = auth_client.post(
+            f"/edit_team/{team_a.id}",
+            data={"name": "Leões FC", "acronym": "LEOES"},
+            content_type="multipart/form-data",
+        )
+        assert "Máximo de 4 letras".encode() in resp.data
+        with app.app_context():
+            assert db.session.get(Team, team_a.id).acronym != "LEOES"
+
+    def test_add_team_tem_campo_sigla(self, auth_client, tournament):
+        assert b'name="acronym"' in auth_client.get("/add_team").data
+
+    def test_add_team_recusa_nome_repetido(self, auth_client, app, tournament, team_a):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        resp = auth_client.post("/add_team", data={"name": "LEÕES FC", "acronym": "LEO"})
+        assert "Já existe um time".encode() in resp.data
+        with app.app_context():
+            assert Team.query.filter_by(tournament_id=tournament.id).count() == 1
+
     def test_edit_team_404(self, auth_client):
         assert auth_client.get("/edit_team/99999").status_code == 404
 
