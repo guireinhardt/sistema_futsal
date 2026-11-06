@@ -554,12 +554,25 @@ def edit_player(player_id):
         player.shirt_number = form.shirt_number.data
         db.session.commit()
         flash("Jogador atualizado!", "success")
+        # Só avisa: bloquear impediria trocar os números de dois jogadores entre si.
+        repetido = Player.query.filter(
+            Player.team_id == player.team_id,
+            Player.shirt_number == player.shirt_number,
+            Player.id != player.id,
+        ).first()
+        if repetido:
+            flash(
+                f"Atenção: {repetido.name} também está com a camisa "
+                f"{player.shirt_number} neste time.",
+                "warning",
+            )
         return redirect(url_for("players"))
 
-    form.name.data = player.name
-    form.team_id.data = player.team_id
-    form.position.data = player.position
-    form.shirt_number.data = player.shirt_number
+    if request.method == "GET":
+        form.name.data = player.name
+        form.team_id.data = player.team_id
+        form.position.data = player.position
+        form.shirt_number.data = player.shirt_number
     return render_template("edit_player.html", form=form, player=player)
 
 

@@ -312,6 +312,40 @@ class TestRotasJogadores:
             assert p.name == "João Atualizado"
             assert p.shirt_number == 99
 
+    def test_edit_player_tem_campo_camisa(self, auth_client, player_a):
+        html = auth_client.get(f"/edit_player/{player_a.id}").data.decode()
+        assert 'name="shirt_number"' in html
+        assert 'value="10"' in html
+
+    def test_edit_player_recusa_camisa_invalida(self, auth_client, app, tournament, player_a, team_a):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        resp = auth_client.post(
+            f"/edit_player/{player_a.id}",
+            data={"name": "João Silva", "team_id": team_a.id, "position": "ala", "shirt_number": 100},
+        )
+        assert resp.status_code == 200
+        assert b'value="100"' in resp.data  # mantém o que foi digitado
+        with app.app_context():
+            assert db.session.get(Player, player_a.id).shirt_number == 10
+
+    def test_edit_player_avisa_camisa_repetida_mas_salva(self, auth_client, app, tournament, player_a, team_a):
+        with app.app_context():
+            db.session.add(Player(name="Outro", team_id=team_a.id, position="fixo", shirt_number=7))
+            db.session.commit()
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        resp = auth_client.post(
+            f"/edit_player/{player_a.id}",
+            data={"name": "João Silva", "team_id": team_a.id, "position": "ala", "shirt_number": 7},
+            follow_redirects=True,
+        )
+        assert "Outro também está com a camisa 7".encode() in resp.data
+        with app.app_context():
+            assert db.session.get(Player, player_a.id).shirt_number == 7
+
+    def test_lista_mostra_numero_da_camisa(self, client, tournament, player_a):
+        client.get(f"/tournament/select/{tournament.id}")
+        assert "#10 · ala".encode() in client.get("/players").data
+
     def test_edit_player_404(self, auth_client):
         assert auth_client.get("/edit_player/99999").status_code == 404
 
