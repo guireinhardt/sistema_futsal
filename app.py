@@ -348,6 +348,35 @@ def add_tournament():
     return render_template("add_tournament.html", form=form)
 
 
+@app.route("/tournament/edit/<int:tid>", methods=["GET", "POST"])
+@login_required
+def edit_tournament(tid):
+    t = Tournament.query.get_or_404(tid)
+    form = TournamentForm()
+    if form.validate_on_submit():
+        try:
+            if _validate_logo(form.logo.data):
+                # Nome curto pelo id: a URL do Cloudinary precisa caber nos 120
+                # caracteres da coluna, e o Postgres recusa o que passar disso.
+                t.logo_filename = _store_logo(
+                    form.logo.data, f"tournament_{t.id}.jpg", "futsal/tournaments"
+                )
+        except ValueError as e:
+            flash(str(e), "danger")
+            return render_template("edit_tournament.html", form=form, tournament=t)
+
+        t.name = form.name.data.strip()
+        t.edition = form.edition.data.strip() or None
+        db.session.commit()
+        flash("Campeonato atualizado com sucesso!", "success")
+        return redirect(url_for("index"))
+
+    if request.method == "GET":
+        form.name.data = t.name
+        form.edition.data = t.edition
+    return render_template("edit_tournament.html", form=form, tournament=t)
+
+
 @app.route("/tournament/select/<int:tid>")
 def select_tournament(tid):
     t = Tournament.query.get_or_404(tid)

@@ -5,7 +5,7 @@ import io
 import pytest
 from PIL import Image
 from app import limiter
-from models import db, Team, Player, Match, PlayerMatchStat
+from models import db, Tournament, Team, Player, Match, PlayerMatchStat
 
 
 class TestSeguranca:
@@ -89,6 +89,63 @@ class TestSeguranca:
         )
         with app.app_context():
             assert Team.query.filter_by(name="Time Real").first().logo_filename == "time_real.jpg"
+
+
+class TestEditarCampeonato:
+    def test_requer_login(self, client, tournament):
+        resp = client.get(f"/tournament/edit/{tournament.id}")
+        assert resp.status_code == 302
+        assert "/login" in resp.headers["Location"]
+
+    def test_404(self, auth_client):
+        assert auth_client.get("/tournament/edit/99999").status_code == 404
+
+    def test_get_mostra_dados_atuais(self, auth_client, tournament):
+        assert b"Copa Teste" in auth_client.get(f"/tournament/edit/{tournament.id}").data
+
+    def test_adiciona_logo_e_mantem_dados(self, auth_client, app, tournament, tmp_path, monkeypatch):
+        monkeypatch.setattr(app, "root_path", str(tmp_path))
+        buf = io.BytesIO()
+        Image.new("RGB", (10, 10), "red").save(buf, format="PNG")
+        buf.seek(0)
+        auth_client.post(
+            f"/tournament/edit/{tournament.id}",
+            data={"name": "Copa Teste", "edition": "2025", "logo": (buf, "logo.png")},
+            content_type="multipart/form-data",
+        )
+        with app.app_context():
+            t = db.session.get(Tournament, tournament.id)
+            assert t.logo_filename == f"tournament_{t.id}.jpg"
+            assert t.name == "Copa Teste"
+        assert (tmp_path / "static" / "logos" / t.logo_filename).exists()
+
+    def test_sem_arquivo_preserva_logo(self, auth_client, app, tournament):
+        with app.app_context():
+            db.session.get(Tournament, tournament.id).logo_filename = "atual.jpg"
+            db.session.commit()
+        auth_client.post(
+            f"/tournament/edit/{tournament.id}",
+            data={"name": "Novo Nome", "edition": ""},
+            content_type="multipart/form-data",
+        )
+        with app.app_context():
+            t = db.session.get(Tournament, tournament.id)
+            assert (t.name, t.edition, t.logo_filename) == ("Novo Nome", None, "atual.jpg")
+
+    def test_recusa_arquivo_falso(self, auth_client, app, tournament):
+        falso = (io.BytesIO(b"<script>alert(1)</script>"), "logo.png")
+        resp = auth_client.post(
+            f"/tournament/edit/{tournament.id}",
+            data={"name": "Outro Nome", "logo": falso},
+            content_type="multipart/form-data",
+        )
+        assert "não é uma imagem válida".encode() in resp.data
+        with app.app_context():
+            t = db.session.get(Tournament, tournament.id)
+            assert (t.name, t.logo_filename) == ("Copa Teste", None)
+
+    def test_link_aparece_para_admin(self, auth_client, tournament):
+        assert b"Editar Campeonato" in auth_client.get("/").data
 
 
 class TestSaude:

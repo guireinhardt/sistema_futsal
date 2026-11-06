@@ -117,6 +117,17 @@
           </div>
         </a>
       </div>
+      {% if active_tournament %}
+      <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('edit_tournament', tid=active_tournament.id) }}" class="menu-card text-decoration-none">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+              <h5 class="card-title">Editar Campeonato</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endif %}
       {% endif %}
 
     </div>
