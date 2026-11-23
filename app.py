@@ -19,6 +19,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 from PIL import Image
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
@@ -66,6 +67,20 @@ app.config["SESSION_COOKIE_SECURE"] = os.environ.get(
 # O Render fica atrás de um proxy: sem isso, todo acesso parece vir do mesmo IP
 # (o rate limit do login travaria para todo mundo junto) e o app não sabe que é HTTPS.
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+# O navegador guarda CSS/imagens por 1 dia sem perguntar de novo ao servidor.
+# Cada link leva ?v=<data do arquivo>, então um deploy com CSS novo muda o
+# link e o navegador busca a versão nova na hora.
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
+
+
+@app.url_defaults
+def _versao_dos_estaticos(endpoint, values):
+    if endpoint == "static" and "filename" in values:
+        caminho = os.path.join(app.static_folder, values["filename"])
+        if os.path.isfile(caminho):
+            values["v"] = int(os.stat(caminho).st_mtime)
+
+
 database_url = os.environ.get("DATABASE_URL", "sqlite:///football.db")
 # Render/Heroku entregam "postgres://", que o SQLAlchemy 2.x não aceita, e o
 # SQLAlchemy 2.1 trocou o driver padrão para psycopg 3: fixa o psycopg2 instalado.
@@ -508,7 +523,11 @@ def players():
     if not active:
         return redirect(url_for("add_tournament"))
 
-    teams = Team.query.filter_by(tournament_id=active.id).all()
+    teams = (
+        Team.query.filter_by(tournament_id=active.id)
+        .options(selectinload(Team.players))
+        .all()
+    )
     for team in teams:
         team.logo_filename = get_logo(team)
     return render_template("players.html", teams=teams)
@@ -628,11 +647,21 @@ def matches():
         return render_template("matches_empty.html")
 
     tid = active.id
-    group_stage_matches = Match.query.filter_by(
-        tournament_id=tid, phase="fase de grupos"
-    ).all()
-    semi_finals = Match.query.filter_by(tournament_id=tid, phase="semi-final").all()
-    final_match = Match.query.filter_by(tournament_id=tid, phase="final").first()
+    # Times carregados junto com os jogos: uma consulta em vez de uma por time.
+    com_times = (selectinload(Match.team_a), selectinload(Match.team_b))
+    group_stage_matches = (
+        Match.query.filter_by(tournament_id=tid, phase="fase de grupos")
+        .options(*com_times)
+        .all()
+    )
+    semi_finals = (
+        Match.query.filter_by(tournament_id=tid, phase="semi-final")
+        .options(*com_times)
+        .all()
+    )
+    final_match = (
+        Match.query.filter_by(tournament_id=tid, phase="final").options(*com_times).first()
+    )
 
     for m in group_stage_matches + semi_finals + ([final_match] if final_match else []):
         m.team_a.logo_filename = get_logo(m.team_a)

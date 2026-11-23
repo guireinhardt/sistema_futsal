@@ -7,16 +7,16 @@ def calculate_standings(tournament_id):
     Retorna lista ordenada por: pontos → saldo de gols → gols pró.
     """
     teams = Team.query.filter_by(tournament_id=tournament_id).all()
+    finished = Match.query.filter(
+        Match.tournament_id == tournament_id,
+        Match.phase == "fase de grupos",
+        Match.score_a.isnot(None),
+        Match.score_b.isnot(None),
+    ).all()
     standings = []
 
     for team in teams:
-        matches = Match.query.filter(
-            Match.tournament_id == tournament_id,
-            Match.phase == "fase de grupos",
-            db.or_(Match.team_a_id == team.id, Match.team_b_id == team.id),
-            Match.score_a.isnot(None),
-            Match.score_b.isnot(None),
-        ).all()
+        matches = [m for m in finished if team.id in (m.team_a_id, m.team_b_id)]
 
         wins = draws = losses = goals_for = goals_against = 0
 

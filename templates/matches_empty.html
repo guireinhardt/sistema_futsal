@@ -2,15 +2,12 @@
 <html lang="pt-BR">
 <head>
     <title>Tabela de Jogos</title>
-    <link rel="stylesheet" href="../static/css/matches.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/matches.css') }}">
 </head>
 <body>
     <header class="site-header">
         <h1>Tabela de Jogos</h1>
         <a href="{{ url_for('index') }}" class="btn btn-primary voltar">Voltar</a>
-        {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('login') }}" class="btn btn-outline-light voltar">Login</a>
-        {% endif %}
     </header>
 
     <div class="container py-5">

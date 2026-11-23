@@ -212,6 +212,23 @@ python seed_selecoes.py dados/selecoes.csv --campeonato "Copa do Mundo Terça F�
 
 Confira a linha `Banco:` no início da saída antes de gravar. O script mostra em qual banco vai gravar, cria o campeonato se não existir e pode ser rodado várias vezes: o que já existe é mantido, só entra o que falta. Se a planilha tiver qualquer erro, nada é gravado e todos os erros são listados com o número da linha. Logos sobem para o Cloudinary quando `CLOUDINARY_URL` está definido.
 
+### Trocar o banco (ex.: mudar o Neon de região)
+
+O Render não tem região no Brasil. Com o Neon em São Paulo e o Render em Ohio, cada consulta atravessa o continente e as páginas ficam lentas. Para mover o banco para junto do site:
+
+1. No Neon, crie um projeto novo na região **AWS US East 2 (Ohio)** e copie a connection string (sem pooling).
+2. Copie os dados (a origem só é lida; o destino precisa estar vazio):
+
+   ```powershell
+   $env:ORIGEM_DATABASE_URL  = "postgresql://...banco atual..."
+   $env:DESTINO_DATABASE_URL = "postgresql://...banco novo..."
+   python copiar_banco.py --simular   # confere, sem gravar
+   python copiar_banco.py             # cria as tabelas e copia (digite COPIAR)
+   ```
+
+3. No Render, troque `DATABASE_URL` pela URL nova e salve (ele reinicia sozinho).
+4. Confira o site. Só apague o projeto antigo no Neon depois de alguns dias funcionando.
+
 ### Limitações a saber
 
 - **Plano free do Render "dorme"** após ~15 min sem acesso — o primeiro request depois disso demora ~30-60s. Se isso incomodar num dia de jogo, o plano pago (Starter, ~$7/mês) elimina o sleep. Um workaround gratuito é configurar um serviço externo (ex. [cron-job.org](https://cron-job.org), UptimeRobot) para pingar `/healthz` a cada 10 min — mantém o app "acordado", mas é um contorno, não garantia.
