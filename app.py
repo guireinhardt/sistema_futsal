@@ -652,11 +652,13 @@ def matches():
     group_stage_matches = (
         Match.query.filter_by(tournament_id=tid, phase="fase de grupos")
         .options(*com_times)
+        .order_by(Match.id)
         .all()
     )
     semi_finals = (
         Match.query.filter_by(tournament_id=tid, phase="semi-final")
         .options(*com_times)
+        .order_by(Match.id)
         .all()
     )
     final_match = (
@@ -880,7 +882,9 @@ def standings():
             get_logo(team_obj) if team_obj else build_logo_filename(row["team"])
         )
 
-    semi_finals = Match.query.filter_by(tournament_id=tid, phase="semi-final").all()
+    semi_finals = (
+        Match.query.filter_by(tournament_id=tid, phase="semi-final").order_by(Match.id).all()
+    )
     final_match = Match.query.filter_by(tournament_id=tid, phase="final").first()
     third_place_match = Match.query.filter_by(tournament_id=tid, phase="3º-lugar").first()
 
@@ -951,7 +955,9 @@ def generate_final_route():
         flash("A final já foi gerada.", "warning")
         return redirect(url_for("standings"))
 
-    semis = Match.query.filter_by(tournament_id=tid, phase="semi-final").all()
+    semis = (
+        Match.query.filter_by(tournament_id=tid, phase="semi-final").order_by(Match.id).all()
+    )
     final_data = generate_final(semis)
 
     if final_data is None:
