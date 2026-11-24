@@ -48,11 +48,9 @@ class MatchForm(FlaskForm):
     team_b_id = SelectField("Time B", coerce=int, validators=[DataRequired()])
     phase = SelectField(
         "Fase",
-        choices=[
-            ("fase de grupos", "Fase de Grupos"),
-            ("semi-final", "Semi-final"),
-            ("final", "Final"),
-        ],
+        # Semi-finais, final e 3º lugar são gerados pela Classificação, a partir
+        # dos resultados; cadastrá-los à mão travaria a geração automática.
+        choices=[("fase de grupos", "Fase de Grupos")],
         validators=[DataRequired()],
     )
     submit = SubmitField("Adicionar partida")

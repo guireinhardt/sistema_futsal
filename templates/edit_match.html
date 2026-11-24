@@ -74,6 +74,12 @@
       {% endfor %}
     {% endwith %}
 
+    {% if placar_travado %}
+      <div class="alerta alerta-warning" role="note">
+        Este placar já definiu a fase seguinte e está travado. Você ainda pode corrigir gols, assistências e defesas dos jogadores.
+      </div>
+    {% endif %}
+
     <!-- Placar -->
     <section class="placar">
       <div class="placar-time">
@@ -83,11 +89,11 @@
         <strong>{{ match.team_a.name }}</strong>
       </div>
       <div class="placar-numeros">
-        <input type="number" min="0" inputmode="numeric" name="score_a" id="score_a" required
+        <input type="number" min="0" inputmode="numeric" name="score_a" id="score_a"{% if placar_travado %} readonly{% endif %} required
                aria-label="Placar {{ match.team_a.name }}"
                value="{{ request.form.get('score_a', match.score_a if match.score_a is not none else '') }}">
         <span class="placar-x">x</span>
-        <input type="number" min="0" inputmode="numeric" name="score_b" id="score_b" required
+        <input type="number" min="0" inputmode="numeric" name="score_b" id="score_b"{% if placar_travado %} readonly{% endif %} required
                aria-label="Placar {{ match.team_b.name }}"
                value="{{ request.form.get('score_b', match.score_b if match.score_b is not none else '') }}">
       </div>
@@ -103,11 +109,11 @@
     <section class="penaltis" id="penaltis" hidden>
       <span class="penaltis-titulo">Empate: informe os pênaltis</span>
       <div class="placar-numeros">
-        <input type="number" min="0" inputmode="numeric" name="penalties_a" id="penalties_a"
+        <input type="number" min="0" inputmode="numeric" name="penalties_a" id="penalties_a"{% if placar_travado %} readonly{% endif %}
                aria-label="Pênaltis {{ match.team_a.name }}"
                value="{{ request.form.get('penalties_a', match.penalties_a if match.penalties_a is not none else '') }}">
         <span class="placar-x">x</span>
-        <input type="number" min="0" inputmode="numeric" name="penalties_b" id="penalties_b"
+        <input type="number" min="0" inputmode="numeric" name="penalties_b" id="penalties_b"{% if placar_travado %} readonly{% endif %}
                aria-label="Pênaltis {{ match.team_b.name }}"
                value="{{ request.form.get('penalties_b', match.penalties_b if match.penalties_b is not none else '') }}">
       </div>
@@ -143,7 +149,8 @@
       const manual = {};
       ['a', 'b'].forEach(lado => {
         const valor = campo(`score_${lado}`).value;
-        manual[lado] = valor !== '' && Number(valor) !== soma(lado);
+        manual[lado] = campo(`score_${lado}`).readOnly ||
+          (valor !== '' && Number(valor) !== soma(lado));
       });
 
       function atualizar() {

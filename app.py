@@ -664,8 +664,12 @@ def matches():
     final_match = (
         Match.query.filter_by(tournament_id=tid, phase="final").options(*com_times).first()
     )
+    third_place_match = (
+        Match.query.filter_by(tournament_id=tid, phase="3º-lugar").options(*com_times).first()
+    )
 
-    for m in group_stage_matches + semi_finals + ([final_match] if final_match else []):
+    unicos = [m for m in (final_match, third_place_match) if m]
+    for m in group_stage_matches + semi_finals + unicos:
         m.team_a.logo_filename = get_logo(m.team_a)
         m.team_b.logo_filename = get_logo(m.team_b)
 
@@ -674,6 +678,7 @@ def matches():
         group_stage_matches=group_stage_matches,
         semi_finals=semi_finals,
         final_match=final_match,
+        third_place_match=third_place_match,
         all_matches_completed=check_all_matches_completed(tid),
         semi_finals_completed=check_semi_finals_completed(tid),
     )
@@ -692,6 +697,9 @@ def add_match():
     form.team_b_id.choices = [(t.id, t.name) for t in teams]
 
     if form.validate_on_submit():
+        if form.team_a_id.data == form.team_b_id.data:
+            flash("Escolha dois times diferentes.", "danger")
+            return render_template("add_match.html", form=form)
         db.session.add(
             Match(
                 tournament_id=active.id,
@@ -746,6 +754,8 @@ def edit_match(match_id):
     match = Match.query.get_or_404(match_id)
     players_a = _jogadores_para_sumula(match.team_a_id)
     players_b = _jogadores_para_sumula(match.team_b_id)
+    # Placar que já gerou a fase seguinte fica travado; os stats continuam editáveis.
+    placar_travado = match.is_finished and _fase_seguinte_gerada(match)
 
     def tela():
         existing = {}
@@ -759,14 +769,15 @@ def edit_match(match_id):
             players_a=players_a,
             players_b=players_b,
             stats_by_player=existing,
-            pode_limpar=match.is_finished and not _fase_seguinte_gerada(match),
+            pode_limpar=match.is_finished and not placar_travado,
+            placar_travado=placar_travado,
         )
 
     if request.method == "GET":
         return tela()
 
     if request.form.get("acao") == "limpar":
-        if _fase_seguinte_gerada(match):
+        if placar_travado:
             flash(
                 "Este resultado já foi usado para gerar a fase seguinte "
                 "e não pode ser limpo.",
@@ -797,6 +808,16 @@ def edit_match(match_id):
                 "danger",
             )
             return tela()
+
+    if placar_travado and (score_a, score_b, penalties_a, penalties_b) != (
+        match.score_a, match.score_b, match.penalties_a, match.penalties_b
+    ):
+        flash(
+            "O placar deste jogo já definiu a fase seguinte e não pode mudar. "
+            "As estatísticas dos jogadores podem ser corrigidas.",
+            "danger",
+        )
+        return tela()
 
     all_stats = {}
     for players, side, team_id in (
@@ -920,7 +941,8 @@ def generate_semi_finals_route():
 
     tid = active.id
 
-    if not check_all_matches_completed(tid):
+    sem_jogos = Match.query.filter_by(tournament_id=tid, phase="fase de grupos").count() == 0
+    if sem_jogos or not check_all_matches_completed(tid):
         flash("Ainda há jogos de grupos não finalizados.", "danger")
         return redirect(url_for("standings"))
 

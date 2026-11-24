@@ -546,7 +546,7 @@ class TestRotasPartidas:
         )
         with app.app_context():
             assert db.session.get(Match, mid).winner.id == team_b.id
-        assert "pên. 4".encode() in auth_client.get("/matches").data
+        assert "pên. 3 × 4".encode() in auth_client.get("/matches").data
 
     def test_penaltis_somem_quando_nao_ha_empate(self, auth_client, app, tournament, team_a, team_b):
         mid = self._semi(tournament, team_a, team_b)
@@ -693,3 +693,76 @@ class TestTopScorers:
         client.get(f"/tournament/select/{tournament.id}")
         resp = client.get("/top_scorers")
         assert "João Silva".encode() in resp.data
+
+
+class TestBugsDoDiaDoJogo:
+    """Classificação, chaveamento e cadastro de partida (correções de 24/11/2026)."""
+
+    def test_classificacao_mostra_jogos_gols_e_saldo(self, client, tournament, complete_group_stage):
+        html = client.get("/standings").data.decode()
+        assert '<td class="posicao">1</td>' in html
+        # Leões: 9 pts, 3 jogos, 9 gols pró, 1 contra, saldo 8
+        linha = html[html.index("Leões FC"):]
+        numeros = re.findall(r"<td[^>]*>\s*(-?\d+)\s*</td>", linha)[:8]
+        assert numeros == ["9", "3", "3", "0", "0", "9", "1", "8"]
+
+    def test_classificacao_e_jogos_abrem_com_final_gerada(
+        self, auth_client, tournament, semi_finals_finished
+    ):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_final")
+        resp = auth_client.get("/standings")
+        assert resp.status_code == 200
+        assert "Final e 3º Lugar".encode() in resp.data
+        jogos = auth_client.get("/matches")
+        assert jogos.status_code == 200
+        assert "Disputa de 3º Lugar".encode() in jogos.data
+
+    def test_botao_gerar_semis_aparece_para_admin(self, auth_client, tournament, complete_group_stage):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        assert b"Gerar semi-finais" in auth_client.get("/standings").data
+
+    def test_botao_gerar_semis_some_para_visitante(self, client, tournament, complete_group_stage):
+        assert b"Gerar semi-finais" not in client.get("/standings").data
+
+    def test_nao_gera_semis_sem_jogos(self, auth_client, app, tournament, four_teams):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_semi_finals")
+        with app.app_context():
+            assert Match.query.filter_by(phase="semi-final").count() == 0
+
+    def test_partida_contra_ele_mesmo_e_recusada(self, auth_client, app, tournament, team_a, team_b):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        resp = auth_client.post("/add_match", data={
+            "team_a_id": team_a.id, "team_b_id": team_a.id, "phase": "fase de grupos"})
+        assert "dois times diferentes".encode() in resp.data
+        with app.app_context():
+            assert Match.query.count() == 0
+
+    def test_cadastro_manual_de_semi_e_recusado(self, auth_client, app, tournament, team_a, team_b):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/add_match", data={
+            "team_a_id": team_a.id, "team_b_id": team_b.id, "phase": "semi-final"})
+        with app.app_context():
+            assert Match.query.count() == 0
+
+    def test_placar_de_grupo_trava_depois_das_semis(
+        self, auth_client, app, tournament, complete_group_stage, player_a
+    ):
+        auth_client.get(f"/tournament/select/{tournament.id}")
+        auth_client.post("/generate_semi_finals")
+        jogo = complete_group_stage[0]  # Leões 3 x 1 Tigres
+        assert "está travado".encode() in auth_client.get(f"/edit_match/{jogo.id}").data
+
+        resp = auth_client.post(f"/edit_match/{jogo.id}", data={"score_a": 0, "score_b": 5})
+        assert "não pode mudar".encode() in resp.data
+        with app.app_context():
+            m = db.session.get(Match, jogo.id)
+            assert (m.score_a, m.score_b) == (3, 1)
+
+        # Mesmo placar, só corrigindo a artilharia: aceito.
+        auth_client.post(f"/edit_match/{jogo.id}", data={
+            "score_a": 3, "score_b": 1, f"goals_a_{player_a.id}": 2})
+        with app.app_context():
+            stat = PlayerMatchStat.query.filter_by(match_id=jogo.id, player_id=player_a.id).one()
+            assert stat.goals == 2

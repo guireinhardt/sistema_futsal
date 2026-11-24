@@ -27,8 +27,14 @@
         </div>
 
         <!-- Título do formulário -->
-        <h2 class="text-center mb-4">Adicionar Resultado da Partida</h2>
+        <h2 class="text-center mb-4">Adicionar Partida</h2>
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} text-center" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+
         <form method="POST">
             {{ form.hidden_tag() }}  <!-- Para CSRF -->
 

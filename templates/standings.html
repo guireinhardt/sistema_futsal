@@ -4,18 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabela de Classificação</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/classificacao.css') }}">
 </head>
 <body>
+{% macro confronto(match, rotulo) %}
+    <tr>
+        <td class="col-rotulo">{{ rotulo }}</td>
+        <td class="col-mandante">{{ match.team_a.name }}</td>
+        <td class="col-placar">
+            {% if match.is_finished %}
+                {{ match.score_a }} × {{ match.score_b }}
+                {% if match.penalties_a is not none %}<small>pên. {{ match.penalties_a }} × {{ match.penalties_b }}</small>{% endif %}
+            {% else %}
+                ×
+            {% endif %}
+        </td>
+        <td class="col-visitante">{{ match.team_b.name }}</td>
+        {% if current_user.is_authenticated %}
+        <td><a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn-editar">Editar</a></td>
+        {% endif %}
+    </tr>
+{% endmacro %}
 
-    <!-- Header -->
-    <header class="site-header text-center py-4">
+    <header class="site-header">
         {% if tournament_logo %}
             <img src="{{ tournament_logo }}" alt="Logo do Campeonato" class="tournament-logo">
         {% endif %}
         <h1 class="titulo">Tabela de Classificação</h1>
-        <div class="mt-1" style="font-size:0.8rem;">
+        <div class="login-link">
             {% if current_user.is_authenticated %}
                 {% include "_logout_form.html" %}
             {% else %}
@@ -24,161 +41,95 @@
         </div>
     </header>
 
-    <!-- Mensagem de Aguardando Fase de Grupos -->
-    {% if not all_matches_completed %}
-        <p class="alert alert-warning text-center">Aguardando todos os jogos da fase de grupos serem finalizados para exibir as semi-finais.</p>
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="mensagem mensagem-{{ category }}" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
 
-    <!-- Tabela de Classificação -->
-    <section class="container my-5">
-        <div class="table-container">
-            <table class="tabelaClassificacao">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Logo</th>
-                        <th>Time</th>
-                        <th>PG</th>
-                        <th>J</th>
-                        <th>V</th>
-                        <th>E</th>
-                        <th>D</th>
-                        <th>GP</th>
-                        <th>GC</th>
-                        <th>SG</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data in standings %}
-                    <tr>
-                        <td>{{ data.position }}</td>
-                        <td>
-                            <img class="logo-time"
-                                src="{{ get_logo_url(data.logo_filename) }}"
-                                alt="{{ data.team }} logo">
-                        </td>
-                        <td>{{ data.team }}</td>
-                        <td>{{ data.points }}</td>
-                        <td>{{ data.matches }}</td>
-                        <td>{{ data.wins }}</td>
-                        <td>{{ data.draws }}</td>
-                        <td>{{ data.losses }}</td>
-                        <td>{{ data.goals_scored }}</td>
-                        <td>{{ data.goals_against }}</td>
-                        <td>{{ data.goal_difference }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- Siglas -->
-    <p class="siglas text-center">SIGLAS: PG - Pontos Ganhos | J - Jogos | V - Vitórias | E - Empate | D - Derrota | GP - Gols Pró | GC - Gols Contra | SG - Saldo de Gols</p>
-
-    <!-- Tabela de Semi-Finais -->
-    {% if semi_finals %}
-    <section id="semi-finals" class="container my-5">
-        <h2 class="semi-final-titulo">Semi-Finais</h2>
-        <table class="tabelaClassificacao semi-final">
+    <section class="table-container">
+        <table class="tabelaClassificacao">
             <thead>
                 <tr>
-                    <th>Jogo</th>
-                    <th>Mandante</th>
-                    <th>Visitante</th>
-                    <th>Ações</th>
+                    <th>#</th>
+                    <th class="col-time">Time</th>
+                    <th>PG</th>
+                    <th>J</th>
+                    <th>V</th>
+                    <th>E</th>
+                    <th>D</th>
+                    <th class="opcional">GP</th>
+                    <th class="opcional">GC</th>
+                    <th>SG</th>
                 </tr>
             </thead>
+            <tbody>
+                {% for data in standings %}
+                <tr>
+                    <td class="posicao">{{ loop.index }}</td>
+                    <td class="col-time">
+                        <div class="time">
+                            <img class="logo-time" src="{{ get_logo_url(data.logo_filename) }}" alt="">
+                            <span>{{ data.team }}</span>
+                        </div>
+                    </td>
+                    <td class="pontos">{{ data.points }}</td>
+                    <td>{{ data.played }}</td>
+                    <td>{{ data.wins }}</td>
+                    <td>{{ data.draws }}</td>
+                    <td>{{ data.losses }}</td>
+                    <td class="opcional">{{ data.goals_for }}</td>
+                    <td class="opcional">{{ data.goals_against }}</td>
+                    <td>{{ data.goal_diff }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <p class="siglas">PG: Pontos Ganhos · J: Jogos · V: Vitórias · E: Empates · D: Derrotas · GP: Gols Pró · GC: Gols Contra · SG: Saldo de Gols</p>
+
+    {% if semi_finals %}
+    <section class="table-container">
+        <h2 class="semi-final-titulo">Semi-Finais</h2>
+        <table class="tabelaClassificacao confrontos">
             <tbody>
                 {% for match in semi_finals %}
-                <tr>
-                    <td>Semi-final</td>
-                    <td>{{ match.team_a.name }}</td>
-                    <td>{{ match.team_b.name }}</td>
-                    <td>
-                        {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
-                            ✏️ Editar
-                        </a>
-                        {% endif %}
-                    </td>
-                </tr>
+                    {{ confronto(match, "Semi " ~ loop.index) }}
                 {% endfor %}
             </tbody>
         </table>
     </section>
-    {% else %}
-    <p class="alert alert-info text-center">As semi-finais serão exibidas após a conclusão da fase de grupos.</p>
+    {% elif all_matches_completed and current_user.is_authenticated %}
+    <form method="post" action="{{ url_for('generate_semi_finals_route') }}" class="gerar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-gerar">Gerar semi-finais (1º × 4º e 2º × 3º)</button>
+    </form>
+    {% elif not all_matches_completed %}
+    <p class="alert">As semi-finais aparecem quando todos os jogos da fase de grupos terminarem.</p>
     {% endif %}
 
-    <!-- Tabela da Final -->
-    {% if final_match %}
-    <section id="final" class="container my-5">
-        <h2 class="final-titulo">Final</h2>
-        <table class="tabelaClassificacao final">
-            <thead>
-                <tr>
-                    <th>Jogo</th>
-                    <th>Mandante</th>
-                    <th>Visitante</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
+    {% if final_match or third_place_match %}
+    <section class="table-container">
+        <h2 class="final-titulo">Final e 3º Lugar</h2>
+        <table class="tabelaClassificacao confrontos">
             <tbody>
-                {% for match in final_match %}
-                <tr>
-                    <td>Final</td>
-                    <td>{{ match.team_a.name }}</td>
-                    <td>{{ match.team_b.name }}</td>
-                    <td>
-                        {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-warning">
-                            ✏️ Editar
-                        </a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
+                {% if third_place_match %}{{ confronto(third_place_match, "3º lugar") }}{% endif %}
+                {% if final_match %}{{ confronto(final_match, "Final") }}{% endif %}
             </tbody>
         </table>
     </section>
-    {% else %}
-    <p class="alert alert-info text-center">A final ainda não foi definida.</p>
+    {% elif semi_finals_completed and current_user.is_authenticated %}
+    <form method="post" action="{{ url_for('generate_final_route') }}" class="gerar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-gerar">Gerar final e disputa de 3º lugar</button>
+    </form>
+    {% elif semi_finals %}
+    <p class="alert">A final aparece quando as duas semi-finais terminarem.</p>
     {% endif %}
 
-    <!-- Confronto de 3º lugar -->
-    {% if third_place_match %}
-    <section id="third-place" class="container my-5">
-        <h2 class="semi-final-titulo">Confronto de 3º Lugar</h2>
-        <table class="tabelaClassificacao semi-final">
-            <thead>
-                <tr>
-                    <th>Jogo</th>
-                    <th>Mandante</th>
-                    <th>Visitante</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>3º lugar</td>
-                    <td>{{ third_place_match.team_a.name }}</td>
-                    <td>{{ third_place_match.team_b.name }}</td>
-                    <td>
-                        {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('edit_match', match_id=third_place_match.id) }}" class="btn btn-warning">
-                            ✏️ Editar
-                        </a>
-                        {% endif %}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-    {% endif %}
-
-    <footer class="site-footer text-center py-3">
-        <a href="{{ url_for('index') }}" class="btn btn-primary">Voltar</a>
+    <footer class="site-footer">
+        <a href="{{ url_for('index') }}" class="btn-primary">Voltar</a>
     </footer>
 
 </body>

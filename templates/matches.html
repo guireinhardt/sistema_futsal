@@ -1,18 +1,51 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabela de Jogos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/matches.css') }}">
 </head>
 <body>
-   <!-- Cabeçalho fixo com o título e o botão Voltar -->
+{% macro jogo(match, rotulo) %}
+    <article class="jogo">
+        <span class="jogo-rotulo">{{ rotulo }}</span>
+        <div class="jogo-linha">
+            <div class="time time-a">
+                <span class="time-nome">{{ match.team_a.name }}</span>
+                <img class="logo-time" src="{{ get_logo_url(match.team_a.logo_filename) }}" alt="">
+            </div>
+            <div class="placar">
+                {% if match.is_finished %}
+                    <span class="gols">{{ match.score_a }}</span>
+                    <span class="placar-x">×</span>
+                    <span class="gols">{{ match.score_b }}</span>
+                {% else %}
+                    <span class="placar-x">×</span>
+                {% endif %}
+            </div>
+            <div class="time time-b">
+                <img class="logo-time" src="{{ get_logo_url(match.team_b.logo_filename) }}" alt="">
+                <span class="time-nome">{{ match.team_b.name }}</span>
+            </div>
+        </div>
+        {% if match.is_finished and match.penalties_a is not none %}
+            <small class="penaltis">pên. {{ match.penalties_a }} × {{ match.penalties_b }}</small>
+        {% elif not match.is_finished %}
+            <small class="aguardando">Aguardando Resultado</small>
+        {% endif %}
+        {% if current_user.is_authenticated %}
+            <a class="editar" href="{{ url_for('edit_match', match_id=match.id) }}">Editar</a>
+        {% endif %}
+    </article>
+{% endmacro %}
+
     <header class="site-header">
         <h1>Tabela de Jogos</h1>
-        <a href="{{ url_for('index') }}" class="btn btn-primary voltar">Voltar</a>
+        <a href="{{ url_for('index') }}" class="voltar">Voltar</a>
     </header>
 
-    <!-- Layout com uma tabela compacta -->
-    <div class="container py-5">
+    <main class="container">
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% for category, message in messages %}
@@ -20,178 +53,43 @@
           {% endfor %}
         {% endwith %}
 
-        <!-- Fase de Grupos -->
-        <div class="fase-container">
+        <section class="fase-container">
             <h2 class="fase-titulo">Fase de Grupos</h2>
             <div class="games-list">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Mandante</th>
-                            <th>Gols</th>
-                            <th>Visitante</th>
-                            <th>Gols</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for match in group_stage_matches %}
-                        <tr>
-                            <td class="centralizar">
-                                <div class="team-info">
-                                    <img class="logo-time" src="{{ get_logo_url(match.team_a.logo_filename) }}" alt="{{ match.team_a.name }} logo">
-                                    <span>{{ match.team_a.name }}</span>
-                                </div>
-                            </td>
-                            <td class="score">
-                                {% if match.score_a is not none %}
-                                    <span class="gols">{{ match.score_a }}</span>{% if match.penalties_a is not none %}<small class="penaltis">pên. {{ match.penalties_a }}</small>{% endif %}
-                                {% else %}
-                                    <span class="gols aguardando">Aguardando Resultado</span>
-                                {% endif %}
-                            </td>
-                            <td class="centralizar">
-                                <div class="team-info">
-                                    <img class="logo-time" src="{{ get_logo_url(match.team_b.logo_filename) }}" alt="{{ match.team_b.name }} logo">
-                                    <span>{{ match.team_b.name }}</span>
-                                </div>
-                            </td>
-                            <td class="score">
-                                {% if match.score_b is not none %}
-                                    <span class="gols">{{ match.score_b }}</span>{% if match.penalties_b is not none %}<small class="penaltis">pên. {{ match.penalties_b }}</small>{% endif %}
-                                {% else %}
-                                    <span class="gols aguardando">Aguardando Resultado</span>
-                                {% endif %}
-                            </td>
-                            <td class="actions">
-                                {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('edit_match', match_id=match.id) }}">Editar</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                {% for match in group_stage_matches %}
+                    {{ jogo(match, "Jogo " ~ loop.index) }}
+                {% endfor %}
             </div>
-        </div>
+        </section>
 
-        <!-- Semi-Finais -->
         {% if semi_finals %}
-        <div class="fase-container">
+        <section class="fase-container">
             <h2 class="fase-titulo">Semi-Finais</h2>
             <div class="games-list">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Mandante</th>
-                            <th>Gols</th>
-                            <th>Visitante</th>
-                            <th>Gols</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for match in semi_finals %}
-                        <tr>
-                            <td class="centralizar">
-                                <div class="team-info">
-                                    <img class="logo-time" src="{{ get_logo_url(match.team_a.logo_filename) }}" alt="{{ match.team_a.name }} logo">
-                                    <span>{{ match.team_a.name }}</span>
-                                </div>
-                            </td>
-                            <td class="score">
-                                {% if match.score_a is not none %}
-                                    <span class="gols">{{ match.score_a }}</span>{% if match.penalties_a is not none %}<small class="penaltis">pên. {{ match.penalties_a }}</small>{% endif %}
-                                {% else %}
-                                    <span class="gols aguardando">Aguardando Resultado</span>
-                                {% endif %}
-                            </td>
-                            <td class="centralizar">
-                                <div class="team-info">
-                                    <img class="logo-time" src="{{ get_logo_url(match.team_b.logo_filename) }}" alt="{{ match.team_b.name }} logo">
-                                    <span>{{ match.team_b.name }}</span>
-                                </div>
-                            </td>
-                            <td class="score">
-                                {% if match.score_b is not none %}
-                                    <span class="gols">{{ match.score_b }}</span>{% if match.penalties_b is not none %}<small class="penaltis">pên. {{ match.penalties_b }}</small>{% endif %}
-                                {% else %}
-                                    <span class="gols aguardando">Aguardando Resultado</span>
-                                {% endif %}
-                            </td>
-                            <td class="actions">
-                                {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('edit_match', match_id=match.id) }}">Editar</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                {% for match in semi_finals %}
+                    {{ jogo(match, "Semi-final " ~ loop.index) }}
+                {% endfor %}
             </div>
-        </div>
+        </section>
         {% endif %}
 
-        <!-- Final -->
+        {% if third_place_match %}
+        <section class="fase-container">
+            <h2 class="fase-titulo">Disputa de 3º Lugar</h2>
+            <div class="games-list">{{ jogo(third_place_match, "3º lugar") }}</div>
+        </section>
+        {% endif %}
+
         {% if final_match %}
-        <div class="fase-container">
+        <section class="fase-container">
             <h2 class="fase-titulo">Final</h2>
-            <div class="games-list">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Mandante</th>
-                            <th>Gols</th>
-                            <th>Visitante</th>
-                            <th>Gols</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="centralizar">
-                                <div class="team-info">
-                                    <img class="logo-time" src="{{ get_logo_url(final_match.team_a.logo_filename) }}" alt="{{ final_match.team_a.name }} logo">
-                                    <span>{{ final_match.team_a.name }}</span>
-                                </div>
-                            </td>
-                            <td class="score">
-                                {% if final_match.score_a is not none %}
-                                    <span class="gols">{{ final_match.score_a }}</span>{% if final_match.penalties_a is not none %}<small class="penaltis">pên. {{ final_match.penalties_a }}</small>{% endif %}
-                                {% else %}
-                                    <span class="gols aguardando">Aguardando Resultado</span>
-                                {% endif %}
-                            </td>
-                            <td class="centralizar">
-                                <div class="team-info">
-                                    <img class="logo-time" src="{{ get_logo_url(final_match.team_b.logo_filename) }}" alt="{{ final_match.team_b.name }} logo">
-                                    <span>{{ final_match.team_b.name }}</span>
-                                </div>
-                            </td>
-                            <td class="score">
-                                {% if final_match.score_b is not none %}
-                                    <span class="gols">{{ final_match.score_b }}</span>{% if final_match.penalties_b is not none %}<small class="penaltis">pên. {{ final_match.penalties_b }}</small>{% endif %}
-                                {% else %}
-                                    <span class="gols aguardando">Aguardando Resultado</span>
-                                {% endif %}
-                            </td>
-                            <td class="actions">
-                                {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('edit_match', match_id=final_match.id) }}">Editar</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            <div class="games-list">{{ jogo(final_match, "Final") }}</div>
+        </section>
         {% else %}
-        <div class="fase-container">
-            <h2 class="fase-titulo">Final ainda não definida</h2>
-        </div>
+        <section class="fase-container">
+            <h2 class="fase-titulo fase-titulo--pendente">Final ainda não definida</h2>
+        </section>
         {% endif %}
-    </div>
-
-    
+    </main>
 </body>
 </html>

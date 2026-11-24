@@ -1,7 +1,6 @@
-/* Fonte Poppins */
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #ffffff;
+    background-color: #f4f4f9;
     color: #201f57;
     display: flex;
     flex-direction: column;
@@ -12,24 +11,26 @@ body {
 /* Cabeçalho */
 .site-header {
     background-color: #ffffff;
-    color: #201f57;
     text-align: center;
-    padding: 20px;
+    padding: 20px 16px;
     border-bottom: 2px solid #ddd;
 }
 
 .site-header h1 {
     font-size: 2rem;
-    font-weight: 500;
-    margin-top: 12px;
+    font-weight: 600;
+    margin: 12px 0 4px;
     color: #060a6c;
 }
 
-/* Logo do campeonato no header — tamanho controlado */
+.login-link {
+    font-size: 0.8rem;
+}
+
 .tournament-logo {
     width: 80px;
     height: 80px;
-    object-fit: contain;  /* contain preserva proporção sem cortar */
+    object-fit: contain;
     display: block;
     margin: 0 auto;
     border-radius: 50%;
@@ -38,144 +39,242 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Mensagem de Aguardando Fase de Grupos */
+/* Avisos */
 .alert {
-    background-color: transparent;
-    color: #ff7f00;
-    padding: 10px;
-    border-radius: 5px;
+    color: #c46500;
     text-align: center;
-    font-size: 16px;
-    margin-top: 20px;
-    width: 100%;
-    box-sizing: border-box;
+    font-size: 0.95rem;
+    margin: 20px auto 0;
+    padding: 0 16px;
+    max-width: 760px;
 }
 
-/* Tabela de Classificação */
+.mensagem {
+    max-width: 760px;
+    margin: 16px auto 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.mensagem-success { background-color: #e8f5e9; color: #1b5e20; }
+.mensagem-warning { background-color: #fff8e1; color: #7a5b00; }
+.mensagem-danger  { background-color: #fdecea; color: #af1411; }
+
+/* Tabelas */
 .table-container {
-    width: 70%;
-    margin: 0 auto;
-    margin-top: 30px;
+    width: 100%;
+    max-width: 860px;
+    margin: 28px auto 0;
+    padding: 0 16px;
+    box-sizing: border-box;
 }
 
 .tabelaClassificacao {
     width: 100%;
     border-collapse: collapse;
     background-color: #ffffff;
-    color: #201f57;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
 .tabelaClassificacao th {
     background-color: #060a6c;
     color: #fff;
-    padding: 15px;
+    padding: 12px 8px;
     text-align: center;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .tabelaClassificacao td {
-    padding: 10px;
+    padding: 10px 8px;
     text-align: center;
-    font-size: 16px;
-    border-bottom: 1px solid #ddd;
+    font-size: 15px;
+    border-bottom: 1px solid #eee;
 }
 
-.tabelaClassificacao tr:nth-child(odd) {
-    background-color: #ffffff;
+.tabelaClassificacao tbody tr:last-child td {
+    border-bottom: none;
 }
 
-.tabelaClassificacao tr:nth-child(even) {
-    background-color: #ffffff;
+/* Time: logo e nome na mesma célula, alinhados à esquerda */
+.col-time {
+    text-align: left !important;
 }
 
-/* Cores dos Top 4 */
-.tabelaClassificacao tr:nth-child(-n+4) td:first-child {
+.time {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-time {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.pontos {
+    font-weight: 600;
+}
+
+/* Os 4 primeiros vão para a semi */
+.tabelaClassificacao tbody tr:nth-child(-n+4) .posicao {
     background-color: #228822;
     color: white;
+    font-weight: 600;
 }
 
-/* Logos dos times na tabela */
-.logo-time {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    border-radius: 50%;
+/* Confrontos (semi, final, 3º lugar) */
+.confrontos .col-rotulo {
+    color: #888;
+    font-size: 13px;
+    white-space: nowrap;
 }
 
-/* Semi-Final */
-.semi-final-titulo {
-    text-align: center;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #007bff;
-    margin-top: 40px;
+.confrontos .col-mandante { text-align: right; font-weight: 600; }
+.confrontos .col-visitante { text-align: left; font-weight: 600; }
+
+.confrontos .col-placar {
+    white-space: nowrap;
+    font-size: 17px;
+    font-weight: 600;
 }
 
-/* Final */
+.confrontos .col-placar small {
+    display: block;
+    font-size: 11px;
+    font-weight: normal;
+    color: #777;
+}
+
+.btn-editar {
+    background-color: #007bff;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.semi-final-titulo,
 .final-titulo {
     text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #28a745;
-    margin-top: 40px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 12px 0;
+}
+
+.semi-final-titulo { color: #007bff; }
+.final-titulo { color: #28a745; }
+
+/* Botões de gerar fase (só para o organizador) */
+.gerar {
+    text-align: center;
+    margin: 24px 16px 0;
+}
+
+.btn-gerar {
+    background-color: #228822;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-gerar:hover {
+    background-color: #1b6e1b;
+}
+
+.siglas {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin: 14px auto 0;
+    padding: 0 16px;
+    max-width: 760px;
 }
 
 footer {
-    background-color: #ffffff;
-    color: #201f57;
-    padding: 20px;
     text-align: center;
-    font-size: 16px;
+    padding: 28px 16px;
     margin-top: auto;
 }
 
-/* Botão voltar */
 .btn-primary {
+    display: inline-block;
     background-color: #af1411;
-    border-color: #af1411;
-    padding: 10px 20px;
+    padding: 10px 24px;
     text-decoration: none;
     color: white;
     border-radius: 8px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .btn-primary:hover {
     background-color: #201f57;
-    border-color: #201f57;
-    text-decoration: none;
 }
 
-/* Siglas */
-.siglas {
-    text-align: center;
-    font-size: 14px;
-    color: #555555;
-    margin-top: 20px;
-    font-family: 'Poppins', sans-serif;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .table-container {
-        width: 100%;
-    }
-
-    .tournament-logo {
-        width: 60px;
-        height: 60px;
+/* Celular */
+@media (max-width: 600px) {
+    .site-header {
+        padding: 14px 12px;
     }
 
     .site-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+    }
+
+    .tournament-logo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .table-container {
+        padding: 0 8px;
+        margin-top: 20px;
+    }
+
+    /* GP e GC saem; o SG resume os dois */
+    .opcional {
+        display: none;
     }
 
     .tabelaClassificacao th,
     .tabelaClassificacao td {
         font-size: 13px;
-        padding: 8px 6px;
+        padding: 9px 4px;
+    }
+
+    .time {
+        gap: 6px;
+    }
+
+    .logo-time {
+        width: 26px;
+        height: 26px;
+    }
+
+    .confrontos .col-rotulo {
+        font-size: 11px;
+    }
+
+    .confrontos .col-placar {
+        font-size: 15px;
+    }
+
+    .semi-final-titulo,
+    .final-titulo {
+        font-size: 1.3rem;
     }
 }

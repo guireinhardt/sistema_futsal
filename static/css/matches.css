@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 * {
     margin: 0;
@@ -12,181 +12,36 @@ body {
     color: #333;
 }
 
-h1 {
-    color: #201f57;  /* Azul escuro */
-    font-size: 2.5rem;
-    margin-top: 20px;
-}
-
-.fase-container {
-    margin-bottom: 40px;
-}
-
-.fase-titulo {
-    color: #af1411;  /* Vermelho para os títulos de fases */
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-align: center;
-}
-
-.table {
-    width: 70%;  /* Ajusta a largura da tabela para não ocupar a página inteira */
-    margin: 0 auto 2rem auto;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    table-layout: fixed; /* Controla o tamanho das colunas */
-    border: none;
-}
-
-table th, table td {
-    padding: 0.8rem;
-    text-align: center;
-    border: 1px solid #ddd;
-    vertical-align: middle;
-    word-wrap: break-word;  /* Garante que o texto não quebre a tabela */
-}
-
-table th {
-    background-color: #060a6c;  /* Azul escuro */
-    color: white;
-    font-weight: bold;
-}
-
-table td {
-    background-color: #f9f9f9;
-}
-
-table tr:nth-child(even) td {
-    background-color: #ffffff;
-}
-
-/* Bloco de largura fixa centrado na célula: os logos formam uma coluna reta
-   e os nomes começam todos no mesmo ponto, seja qual for o tamanho do nome. */
-.team-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 190px;
-    max-width: 100%;
-    margin: 0 auto;
-    text-align: left;
-}
-
-.logo-time {
-    height: 40px;  /* Logo reduzido */
-    width: 40px;   /* Logo reduzido */
-    object-fit: contain;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background-color: #fff;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.score {
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.gols {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-    color: #333;
-}
-
-.penaltis {
-    display: block;
-    margin-top: 4px;
-    font-size: 0.75rem;
-    font-weight: normal;
-    color: #777;
-}
-
-.mensagem {
-    max-width: 70%;
-    margin: 0 auto 12px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.mensagem-success {
-    background-color: #e8f5e9;
-    color: #1b5e20;
-}
-
-.mensagem-warning {
-    background-color: #fff8e1;
-    color: #7a5b00;
-}
-
-.mensagem-danger {
-    background-color: #fdecea;
-    color: #af1411;
-}
-
-.gols.aguardando {
-    background-color: #f0f0f0;
-    color: #999;
-}
-
-.actions {
-    margin-left: 10px;
-}
-
-.actions a {
-    color: #fff;
-    background-color: #007bff; /* Azul vibrante para o botão */
-    padding: 0.6rem 1rem; /* Tamanho agradável e confortável */
-    border-radius: 5px; /* Bordas arredondadas para suavizar o visual */
-    font-weight: bold;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.3s ease; /* Transição suave para o efeito hover */
-}
-
-.actions a:hover {
-    background-color: #0056b3; /* Azul mais escuro no hover */
-    transform: scale(1.05); /* Efeito de aumento para dar interatividade */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Sombra mais forte no hover */
-}
-
-.actions a:active {
-    transform: scale(1); /* Retorna ao tamanho original quando clicado */
-    box-shadow: none; /* Remove a sombra ao clicar */
-}
-
-/* Cabeçalho fixo com título centralizado e botão Voltar à direita */
+/* Cabeçalho fixo: título centralizado e Voltar à direita */
 .site-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    text-align: center;  /* Centraliza o conteúdo do cabeçalho */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .site-header h1 {
+    flex-grow: 1;
+    text-align: center;
     font-size: 2rem;
     color: #201f57;
-    margin: 0;
-    flex-grow: 1; /* Permite que o título ocupe todo o espaço disponível e fique centralizado */
 }
 
 .voltar {
-    background-color: #af1411; /* Vermelho para o botão Voltar */
+    flex-shrink: 0;
+    background-color: #af1411;
     color: #fff;
     padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 5px;
+    font-weight: 600;
+    border-radius: 6px;
     text-decoration: none;
     transition: background-color 0.3s ease;
 }
@@ -195,53 +50,217 @@ table tr:nth-child(even) td {
     background-color: #c13d34;
 }
 
-/* Ajustando o conteúdo para não ficar atrás do cabeçalho fixo */
+/* Conteúdo abaixo do cabeçalho fixo */
 .container {
-    margin-top: 100px;  /* Espaço para o cabeçalho fixo */
-    padding: 30px;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 110px 16px 40px;
 }
 
-/* Responsividade para telas pequenas */
-@media (max-width: 768px) {
-    .table {
-        width: 100%;
+.fase-container {
+    margin-bottom: 36px;
+}
+
+.fase-titulo {
+    color: #af1411;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 14px;
+}
+
+.fase-titulo--pendente {
+    font-size: 1.3rem;
+    color: #888;
+}
+
+.games-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Um cartão por jogo: [nome logo] placar [logo nome] */
+.jogo {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    padding: 10px 16px 12px;
+    text-align: center;
+}
+
+.jogo-rotulo {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+}
+
+.jogo-linha {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+}
+
+.time {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.time-a {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.time-b {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.time-nome {
+    font-weight: 600;
+    color: #201f57;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.logo-time {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.placar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 48px;
+    justify-content: center;
+}
+
+.gols {
+    display: inline-block;
+    min-width: 38px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background-color: #060a6c;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.placar-x {
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.aguardando,
+.penaltis {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: #888;
+}
+
+.penaltis {
+    color: #555;
+    font-weight: 600;
+}
+
+.editar {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 18px;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.editar:hover {
+    background-color: #0056b3;
+}
+
+/* Mensagens */
+.mensagem {
+    margin: 0 auto 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.mensagem-success { background-color: #e8f5e9; color: #1b5e20; }
+.mensagem-warning { background-color: #fff8e1; color: #7a5b00; }
+.mensagem-danger  { background-color: #fdecea; color: #af1411; }
+
+/* Celular: logo em cima do nome, tudo centralizado em cada lado */
+@media (max-width: 600px) {
+    .site-header {
+        padding: 10px 12px;
     }
 
-    h1 {
-        font-size: 1.8rem;
+    .site-header h1 {
+        font-size: 1.3rem;
     }
 
-    table td, table th {
-        font-size: 14px;
+    .voltar {
+        padding: 8px 14px;
+        font-size: 0.9rem;
     }
 
-    .team-info {
+    .container {
+        padding: 80px 12px 32px;
+    }
+
+    .fase-titulo {
+        font-size: 1.4rem;
+    }
+
+    .jogo {
+        padding: 8px 10px 10px;
+    }
+
+    .jogo-linha {
+        gap: 8px;
+    }
+
+    .time,
+    .time-a,
+    .time-b {
         flex-direction: column;
-        gap: 4px;
-        width: 100%;
+        justify-content: center;
         text-align: center;
+        gap: 4px;
     }
 
-    table td, table th {
-        padding: 0.4rem 0.2rem;
-        font-size: 12px;
+    /* No mandante o nome vem antes do logo no HTML; no celular o logo fica em cima. */
+    .time-a .logo-time {
+        order: -1;
     }
 
-    .score {
-        font-size: 11px;
+    .time-nome {
+        font-size: 0.85rem;
+    }
+
+    .logo-time {
+        width: 36px;
+        height: 36px;
     }
 
     .gols {
-        max-width: 100%;
-        padding: 0.25rem 0.3rem;
-    }
-
-    .actions {
-        margin-left: 0;
-    }
-
-    .actions a {
-        padding: 0.3rem 0.4rem;
-        font-size: 11px;
+        min-width: 32px;
+        font-size: 1.1rem;
+        padding: 3px 6px;
     }
 }
